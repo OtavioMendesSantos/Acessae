@@ -1,22 +1,25 @@
 'use client';
 
-import { useState } from 'react';
-import { useRouter } from 'next/navigation';
-import { useForm } from 'react-hook-form';
-import { zodResolver } from '@hookform/resolvers/zod';
-import Link from 'next/link';
-
 import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
+import { FormHelper } from '@/components/ui/form-helper';
+import { Input } from '@/components/ui/input';
+import { PasswordInput } from '@/components/ui/password-input';
+import { zodResolver } from '@hookform/resolvers/zod';
+import Link from 'next/link';
+import { useRouter, useSearchParams } from 'next/navigation';
+import { useEffect, useState } from 'react';
+import { useForm } from 'react-hook-form';
 
 import { loginSchema, type LoginFormData } from '@/lib/validations';
 
 export default function LoginPage() {
   const router = useRouter();
+  const searchParams = useSearchParams();
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState('');
+  const [message, setMessage] = useState('');
 
   const form = useForm<LoginFormData>({
     resolver: zodResolver(loginSchema),
@@ -25,6 +28,13 @@ export default function LoginPage() {
       password: '',
     },
   });
+
+  useEffect(() => {
+    const messageParam = searchParams.get('message');
+    if (messageParam) {
+      setMessage(messageParam);
+    }
+  }, [searchParams]);
 
   const onSubmit = async (data: LoginFormData) => {
     setIsLoading(true);
@@ -92,9 +102,8 @@ export default function LoginPage() {
                   <FormItem>
                     <FormLabel>Senha</FormLabel>
                     <FormControl>
-                      <Input
-                        type="password"
-                        placeholder="••••••••"
+                      <PasswordInput
+                        placeholder="•••• ••••"
                         {...field}
                         disabled={isLoading}
                       />
@@ -103,9 +112,18 @@ export default function LoginPage() {
                   </FormItem>
                 )}
               />
-              {error && (
-                <div className="text-red-500 text-sm text-center">{error}</div>
-              )}
+              
+              <div className="text-right">
+                <Link 
+                  href="/esqueci-senha" 
+                  className="text-sm text-blue-600 hover:underline"
+                >
+                  Esqueci minha senha
+                </Link>
+              </div>
+              
+              <FormHelper message={message} type="success" />
+              <FormHelper message={error} type="error" />
               <Button type="submit" className="w-full" disabled={isLoading}>
                 {isLoading ? 'Entrando...' : 'Entrar'}
               </Button>
