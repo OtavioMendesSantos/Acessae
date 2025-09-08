@@ -72,3 +72,5 @@ TRUNCATE TABLE users RESTART IDENTITY;
 \dt
 ```
 
+
+

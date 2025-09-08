@@ -1,60 +1,82 @@
 'use client';
 
-import { useState } from 'react';
-import { useRouter } from 'next/navigation';
+import { useState, useEffect } from 'react';
+import { useRouter, useSearchParams } from 'next/navigation';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import Link from 'next/link';
+import { z } from 'zod';
 
 import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
 import { PasswordInput } from '@/components/ui/password-input';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { FormHelper } from '@/components/ui/form-helper';
 import { PasswordRequirements } from '@/components/ui/password-requirements';
+import { passwordSchema } from '@/lib/validations';
 
-import { registerSchema, type RegisterFormData } from '@/lib/validations';
+const resetPasswordSchema = z.object({
+  password: passwordSchema,
+  confirmPassword: z.string().min(1, "Confirmação de senha é obrigatória"),
+}).refine((data) => data.password === data.confirmPassword, {
+  message: "Senhas não coincidem",
+  path: ["confirmPassword"],
+});
 
-export default function CadastroPage() {
+type ResetPasswordFormData = z.infer<typeof resetPasswordSchema>;
+
+export default function RedefinirSenhaPage() {
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const token = searchParams.get('token');
+  
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState('');
   const [hasPasswordInteracted, setHasPasswordInteracted] = useState(false);
 
-  const form = useForm<RegisterFormData>({
-    resolver: zodResolver(registerSchema),
+  const form = useForm<ResetPasswordFormData>({
+    resolver: zodResolver(resetPasswordSchema),
     defaultValues: {
-      name: '',
-      email: '',
       password: '',
       confirmPassword: '',
     },
   });
 
-  const password = form.watch('password')
+  const password = form.watch('password');
 
-  const onSubmit = async (data: RegisterFormData) => {
+  useEffect(() => {
+    if (!token) {
+      setError('Token inválido ou expirado');
+    }
+  }, [token]);
+
+  const onSubmit = async (data: ResetPasswordFormData) => {
+    if (!token) {
+      setError('Token inválido');
+      return;
+    }
+
     setIsLoading(true);
     setError('');
 
     try {
-      const response = await fetch('/api/auth/register', {
+      const response = await fetch('/api/auth/reset-password', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify(data),
+        body: JSON.stringify({
+          token,
+          password: data.password,
+        }),
       });
 
       const result = await response.json();
 
       if (response.ok) {
-        // Salvar token no localStorage ou cookie
-        localStorage.setItem('token', result.token);
-        router.push('/home');
+        router.push('/login?message=Senha redefinida com sucesso');
       } else {
-        setError(result.message || 'Erro ao criar conta');
+        setError(result.message || 'Erro ao redefinir senha');
       }
     } catch {
       setError('Erro de conexão. Tente novamente.');
@@ -63,14 +85,33 @@ export default function CadastroPage() {
     }
   };
 
+  if (!token) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-gray-50 dark:bg-gray-900">
+        <Card className="w-full max-w-md">
+          <CardHeader className="space-y-1">
+            <CardTitle className="text-2xl text-center text-red-600">Token Inválido</CardTitle>
+            <CardDescription className="text-center">
+              O link de redefinição é inválido ou expirou
+            </CardDescription>
+          </CardHeader>
+          <CardFooter className="flex justify-center">
+            <Link href="/esqueci-senha" className="text-blue-600 hover:underline">
+              Solicitar novo link
+            </Link>
+          </CardFooter>
+        </Card>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gray-50 dark:bg-gray-900">
       <Card className="w-full max-w-md">
         <CardHeader className="space-y-1">
-          <CardTitle className="text-2xl text-center">Criar Conta</CardTitle>
+          <CardTitle className="text-2xl text-center">Redefinir Senha</CardTitle>
           <CardDescription className="text-center">
-            Preencha os dados para criar sua conta
+            Digite sua nova senha
           </CardDescription>
         </CardHeader>
         <CardContent>
@@ -78,46 +119,10 @@ export default function CadastroPage() {
             <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
               <FormField
                 control={form.control}
-                name="name"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Nome</FormLabel>
-                    <FormControl>
-                      <Input
-                        type="text"
-                        placeholder="Seu nome completo"
-                        {...field}
-                        disabled={isLoading}
-                      />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-              <FormField
-                control={form.control}
-                name="email"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Email</FormLabel>
-                    <FormControl>
-                      <Input
-                        type="email"
-                        placeholder="seu@email.com"
-                        {...field}
-                        disabled={isLoading}
-                      />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-              <FormField
-                control={form.control}
                 name="password"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Senha</FormLabel>
+                    <FormLabel>Nova Senha</FormLabel>
                     <FormControl>
                       <PasswordInput
                         placeholder="••••••••"
@@ -138,12 +143,13 @@ export default function CadastroPage() {
                   </FormItem>
                 )}
               />
+              
               <FormField
                 control={form.control}
                 name="confirmPassword"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Confirmar Senha</FormLabel>
+                    <FormLabel>Confirmar Nova Senha</FormLabel>
                     <FormControl>
                       <PasswordInput
                         placeholder="••••••••"
@@ -155,18 +161,20 @@ export default function CadastroPage() {
                   </FormItem>
                 )}
               />
+              
               <FormHelper message={error} type="error" />
+              
               <Button type="submit" className="w-full" disabled={isLoading}>
-                {isLoading ? 'Criando conta...' : 'Criar Conta'}
+                {isLoading ? 'Redefinindo...' : 'Redefinir Senha'}
               </Button>
             </form>
           </Form>
         </CardContent>
         <CardFooter className="flex justify-center">
           <p className="text-sm text-gray-600 dark:text-gray-400">
-            Já tem uma conta?{' '}
+            Lembrou da senha?{' '}
             <Link href="/login" className="text-blue-600 hover:underline">
-              Entrar
+              Voltar ao login
             </Link>
           </p>
         </CardFooter>
@@ -174,4 +182,3 @@ export default function CadastroPage() {
     </div>
   );
 }
-

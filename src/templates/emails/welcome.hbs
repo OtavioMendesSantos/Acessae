@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Bem-vindo ao {{appName}}!</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            font-family: Arial, sans-serif;
+            background-color: #f5f5f5;
+            color: #333;
+        }
+        .container {
+            max-width: 600px;
+            margin: 0 auto;
+            background-color: #ffffff;
+            padding: 40px;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+        }
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        .logo {
+            font-size: 32px;
+            font-weight: bold;
+            color: #007bff;
+            margin-bottom: 10px;
+        }
+        .title {
+            font-size: 24px;
+            color: #333;
+            margin-bottom: 10px;
+        }
+        .subtitle {
+            font-size: 16px;
+            color: #666;
+            margin-bottom: 30px;
+        }
+        .content {
+            line-height: 1.6;
+            margin-bottom: 30px;
+        }
+        .welcome-message {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 30px;
+            border-radius: 8px;
+            text-align: center;
+            margin: 30px 0;
+        }
+        .button-container {
+            text-align: center;
+            margin: 30px 0;
+        }
+        .cta-button {
+            display: inline-block;
+            background-color: #28a745;
+            color: white;
+            padding: 15px 30px;
+            text-decoration: none;
+            border-radius: 5px;
+            font-weight: bold;
+            font-size: 16px;
+        }
+        .features {
+            background-color: #f8f9fa;
+            padding: 20px;
+            border-radius: 8px;
+            margin: 20px 0;
+        }
+        .feature-item {
+            margin: 10px 0;
+            padding-left: 20px;
+            position: relative;
+        }
+        .feature-item:before {
+            content: "✓";
+            position: absolute;
+            left: 0;
+            color: #28a745;
+            font-weight: bold;
+        }
+        .footer {
+            margin-top: 40px;
+            padding-top: 20px;
+            border-top: 1px solid #eee;
+            font-size: 12px;
+            color: #666;
+            text-align: center;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <div class="logo">{{appName}}</div>
+            <h1 class="title">Bem-vindo!</h1>
+            <p class="subtitle">Sua conta foi criada com sucesso</p>
+        </div>
+        
+        <div class="welcome-message">
+            <h2>Olá {{userName}}! 🎉</h2>
+            <p>Estamos felizes em tê-lo conosco. Sua jornada começa agora!</p>
+        </div>
+        
+        <div class="content">
+            <p>Sua conta no <strong>{{appName}}</strong> foi criada com sucesso. Agora você pode aproveitar todos os nossos recursos:</p>
+            
+            <div class="features">
+                <div class="feature-item">Acesso completo à plataforma</div>
+                <div class="feature-item">Suporte técnico especializado</div>
+                <div class="feature-item">Atualizações automáticas</div>
+                <div class="feature-item">Segurança garantida</div>
+            </div>
+            
+            <div class="button-container">
+                <a href="{{loginUrl}}" class="cta-button">Começar Agora</a>
+            </div>
+            
+            <p>Se você tiver alguma dúvida, não hesite em entrar em contato conosco. Estamos aqui para ajudar!</p>
+        </div>
+        
+        <div class="footer">
+            <p>Este é um email automático, por favor não responda.</p>
+            <p>&copy; {{currentYear}} {{appName}}. Todos os direitos reservados.</p>
+        </div>
+    </div>
+</body>
+</html>
