@@ -43,22 +43,35 @@ psql -U postgres -d acessae -f database/init.sql
 
 ### 3. Configure as variáveis de ambiente
 
-Crie um arquivo `.env.local` na raiz do projeto:
+Crie um arquivo `.env.local` na raiz do projeto baseado no arquivo `.env.example`:
+
+```bash
+# Copie o arquivo de exemplo
+cp .env.example .env.local
+```
+
+Configure as seguintes variáveis no arquivo `.env.local`:
 
 ```env
 # Database
 DATABASE_URL="postgresql://postgres:sua_senha@localhost:5432/acessae"
 
-# JWT
+# JWT Authentication
 JWT_SECRET="seu-jwt-secret-muito-seguro"
-JWT_EXPIRES_IN="7d"
+
+# Email Service (Gmail)
+GMAIL_PASSWORD="sua-senha-de-app-gmail"
+GMAIL_EMAIL="seu-email@gmail.com"
 
 # Next.js
 NEXTAUTH_URL="http://localhost:3000"
-NEXTAUTH_SECRET="seu-nextauth-secret-muito-seguro"
 ```
 
-**⚠️ Importante:** Substitua `sua_senha` pela senha do seu PostgreSQL e use secrets seguros em produção.
+**⚠️ Importante:** 
+- Substitua `sua_senha` pela senha do seu PostgreSQL
+- Use secrets seguros em produção
+- Para o Gmail, use uma senha de aplicativo, não sua senha normal
+- O arquivo `.env.local` não será commitado no repositório
 
 ### 4. Execute o projeto
 
