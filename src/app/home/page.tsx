@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Settings, Users, User } from 'lucide-react';
 
 export default function HomePage() {
   const router = useRouter();
@@ -49,6 +50,14 @@ export default function HomePage() {
     router.push('/login');
   };
 
+  const handleAdminPanel = () => {
+    router.push('/admin');
+  };
+
+  const handleProfile = () => {
+    router.push('/profile');
+  };
+
   if (isLoading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
@@ -65,9 +74,15 @@ export default function HomePage() {
             <h1 className="text-3xl font-bold text-gray-900 dark:text-white">
               Acessae
             </h1>
-            <Button onClick={handleLogout} variant="outline">
-              Sair
-            </Button>
+            <div className="flex space-x-2">
+              <Button onClick={handleProfile} variant="outline">
+                <User className="h-4 w-4 mr-2" />
+                Meu Perfil
+              </Button>
+              <Button onClick={handleLogout} variant="outline">
+                Sair
+              </Button>
+            </div>
           </div>
         </div>
       </header>
@@ -75,17 +90,26 @@ export default function HomePage() {
       {user?.isAdmin && (
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-4">
           <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
-            <div className="flex items-center">
-              <div className="flex-shrink-0">
-                <svg className="h-5 w-5 text-blue-400" viewBox="0 0 20 20" fill="currentColor">
-                  <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clipRule="evenodd" />
-                </svg>
+            <div className="flex items-center justify-between">
+              <div className="flex items-center">
+                <div className="flex-shrink-0">
+                  <Settings className="h-5 w-5 text-blue-400" />
+                </div>
+                <div className="ml-3">
+                  <p className="text-sm text-blue-700 font-medium">
+                    Olá adm {user.name}
+                  </p>
+                </div>
               </div>
-              <div className="ml-3">
-                <p className="text-sm text-blue-700 font-medium">
-                  Olá adm {user.name}
-                </p>
-              </div>
+              <Button 
+                onClick={handleAdminPanel}
+                variant="outline"
+                size="sm"
+                className="bg-white hover:bg-blue-50 border-blue-300 text-blue-700"
+              >
+                <Users className="h-4 w-4 mr-2" />
+                Administração
+              </Button>
             </div>
           </div>
         </div>
