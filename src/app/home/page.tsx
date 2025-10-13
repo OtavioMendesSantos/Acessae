@@ -4,7 +4,7 @@ import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Settings, Users, User } from 'lucide-react';
+import { Settings, Users, MapPin } from 'lucide-react';
 
 export default function HomePage() {
   const router = useRouter();
@@ -45,17 +45,12 @@ export default function HomePage() {
     checkAuth();
   }, [router]);
 
-  const handleLogout = () => {
-    localStorage.removeItem('token');
-    router.push('/login');
-  };
-
   const handleAdminPanel = () => {
     router.push('/admin');
   };
 
-  const handleProfile = () => {
-    router.push('/profile');
+  const handleMap = () => {
+    router.push('/mapa');
   };
 
   if (isLoading) {
@@ -67,28 +62,9 @@ export default function HomePage() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
-      <header className="bg-white dark:bg-gray-800 shadow">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex justify-between items-center py-6">
-            <h1 className="text-3xl font-bold text-gray-900 dark:text-white">
-              Acessae
-            </h1>
-            <div className="flex space-x-2">
-              <Button onClick={handleProfile} variant="outline">
-                <User className="h-4 w-4 mr-2" />
-                Meu Perfil
-              </Button>
-              <Button onClick={handleLogout} variant="outline">
-                Sair
-              </Button>
-            </div>
-          </div>
-        </div>
-      </header>
-
+    <div className="container mx-auto px-4 py-8">
       {user?.isAdmin && (
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-4">
+        <div className="mb-6">
           <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
             <div className="flex items-center justify-between">
               <div className="flex items-center">
@@ -115,43 +91,52 @@ export default function HomePage() {
         </div>
       )}
 
-      <main className="max-w-7xl mx-auto py-6 sm:px-6 lg:px-8">
-        <div className="px-4 py-6 sm:px-0">
-          <Card className="max-w-2xl mx-auto">
-            <CardHeader>
-              <CardTitle className="text-2xl text-center text-green-600">
-                Login realizado com sucesso!
-              </CardTitle>
-              <CardDescription className="text-center">
-                Bem-vindo ao Acessae
-              </CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              {user && (
-                <div className="bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 rounded-lg p-4">
-                  <h3 className="font-semibold text-green-800 dark:text-green-200 mb-2">
-                    Informações do usuário:
-                  </h3>
-                  <div className="space-y-1 text-sm">
-                    <p className="text-green-700 dark:text-green-300">
-                      <strong>Nome:</strong> {user.name}
-                    </p>
-                    <p className="text-green-700 dark:text-green-300">
-                      <strong>Email:</strong> {user.email}
-                    </p>
-                    <p className="text-green-700 dark:text-green-300">
-                      <strong>Tipo:</strong> {user.isAdmin ? 'Administrador' : 'Usuário'}
-                    </p>
-                  </div>
+      <div className="max-w-2xl mx-auto">
+        <Card>
+          <CardHeader>
+            <CardTitle className="text-2xl text-center text-green-600">
+              Login realizado com sucesso!
+            </CardTitle>
+            <CardDescription className="text-center">
+              Bem-vindo ao Acessae
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            {user && (
+              <div className="bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 rounded-lg p-4">
+                <h3 className="font-semibold text-green-800 dark:text-green-200 mb-2">
+                  Informações do usuário:
+                </h3>
+                <div className="space-y-1 text-sm">
+                  <p className="text-green-700 dark:text-green-300">
+                    <strong>Nome:</strong> {user.name}
+                  </p>
+                  <p className="text-green-700 dark:text-green-300">
+                    <strong>Email:</strong> {user.email}
+                  </p>
+                  <p className="text-green-700 dark:text-green-300">
+                    <strong>Tipo:</strong> {user.isAdmin ? 'Administrador' : 'Usuário'}
+                  </p>
                 </div>
-              )}
-
-              <div className="text-center text-gray-600 dark:text-gray-400">
               </div>
-            </CardContent>
-          </Card>
-        </div>
-      </main>
+            )}
+
+            <div className="text-center space-y-4">
+              <Button 
+                onClick={handleMap}
+                className="w-full"
+                size="lg"
+              >
+                <MapPin className="h-5 w-5 mr-2" />
+                Ver Mapa de Locais
+              </Button>
+              <p className="text-sm text-gray-600 dark:text-gray-400">
+                Explore os locais acessíveis cadastrados no sistema
+              </p>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
     </div>
   );
 }
