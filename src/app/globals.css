@@ -45,45 +45,60 @@
 
 :root {
   --radius: 0.75rem;
-  
+
   /* Paleta baseada na imagem do login */
-  --background: #f8fafc; /* Background principal - cinza muito claro */
-  --foreground: #1f2937; /* Texto principal - cinza escuro */
-  
-  --card: #ffffff; /* Cards brancos */
+  --background: #f8fafc;
+  /* Background principal - cinza muito claro */
+  --foreground: #1f2937;
+  /* Texto principal - cinza escuro */
+
+  --card: #ffffff;
+  /* Cards brancos */
   --card-foreground: #1f2937;
-  
+
   --popover: #ffffff;
   --popover-foreground: #1f2937;
-  
+
   /* Verde vibrante do "ê" e elementos de destaque */
   --primary: #10b981;
   --primary-foreground: #ffffff;
-  
+
   /* Azul médio dos botões e pin do mapa */
   --secondary: #3b82f6;
   --secondary-foreground: #ffffff;
-  
-  --muted: #f1f5f9; /* Cinza muito claro para backgrounds */
-  --muted-foreground: #6b7280; /* Cinza médio para texto secundário */
-  
-  --accent: #e5e7eb; /* Cinza claro para bordas */
+
+  --muted: #f1f5f9;
+  /* Cinza muito claro para backgrounds */
+  --muted-foreground: #6b7280;
+  /* Cinza médio para texto secundário */
+
+  --accent: #e5e7eb;
+  /* Cinza claro para bordas */
   --accent-foreground: #1f2937;
-  
-  --destructive: #ef4444; /* Vermelho para erros */
+
+  --destructive: #ef4444;
+  /* Vermelho para erros */
   --destructive-foreground: #ffffff;
-  
-  --border: #e5e7eb; /* Bordas cinza claro */
-  --input: #ffffff; /* Inputs brancos */
-  --ring: #3b82f6; /* Ring azul */
-  
+
+  --border: #e5e7eb;
+  /* Bordas cinza claro */
+  --input: #ffffff;
+  /* Inputs brancos */
+  --ring: #3b82f6;
+  /* Ring azul */
+
   /* Cores para gráficos */
-  --chart-1: #10b981; /* Verde */
-  --chart-2: #3b82f6; /* Azul */
-  --chart-3: #f59e0b; /* Amarelo */
-  --chart-4: #ef4444; /* Vermelho */
-  --chart-5: #8b5cf6; /* Roxo */
-  
+  --chart-1: #10b981;
+  /* Verde */
+  --chart-2: #3b82f6;
+  /* Azul */
+  --chart-3: #f59e0b;
+  /* Amarelo */
+  --chart-4: #ef4444;
+  /* Vermelho */
+  --chart-5: #8b5cf6;
+  /* Roxo */
+
   /* Sidebar */
   --sidebar: #ffffff;
   --sidebar-foreground: #1f2937;
@@ -97,43 +112,58 @@
 
 .dark {
   /* Modo escuro baseado na paleta da imagem */
-  --background: #0f172a; /* Azul escuro profundo */
-  --foreground: #f8fafc; /* Texto claro */
-  
-  --card: #1e293b; /* Cards azul escuro */
+  --background: #0f172a;
+  /* Azul escuro profundo */
+  --foreground: #f8fafc;
+  /* Texto claro */
+
+  --card: #1e293b;
+  /* Cards azul escuro */
   --card-foreground: #f8fafc;
-  
+
   --popover: #1e293b;
   --popover-foreground: #f8fafc;
-  
+
   /* Verde mais vibrante no modo escuro */
   --primary: #34d399;
   --primary-foreground: #0f172a;
-  
+
   /* Azul mais claro no modo escuro */
   --secondary: #60a5fa;
   --secondary-foreground: #0f172a;
-  
-  --muted: #334155; /* Cinza escuro para backgrounds */
-  --muted-foreground: #94a3b8; /* Cinza médio para texto secundário */
-  
-  --accent: #475569; /* Cinza médio para bordas */
+
+  --muted: #334155;
+  /* Cinza escuro para backgrounds */
+  --muted-foreground: #94a3b8;
+  /* Cinza médio para texto secundário */
+
+  --accent: #475569;
+  /* Cinza médio para bordas */
   --accent-foreground: #f8fafc;
-  
-  --destructive: #f87171; /* Vermelho mais claro */
+
+  --destructive: #f87171;
+  /* Vermelho mais claro */
   --destructive-foreground: #0f172a;
-  
-  --border: #334155; /* Bordas cinza escuro */
-  --input: #1e293b; /* Inputs azul escuro */
-  --ring: #60a5fa; /* Ring azul claro */
-  
+
+  --border: #334155;
+  /* Bordas cinza escuro */
+  --input: #1e293b;
+  /* Inputs azul escuro */
+  --ring: #60a5fa;
+  /* Ring azul claro */
+
   /* Cores para gráficos no modo escuro */
-  --chart-1: #34d399; /* Verde claro */
-  --chart-2: #60a5fa; /* Azul claro */
-  --chart-3: #fbbf24; /* Amarelo claro */
-  --chart-4: #f87171; /* Vermelho claro */
-  --chart-5: #a78bfa; /* Roxo claro */
-  
+  --chart-1: #34d399;
+  /* Verde claro */
+  --chart-2: #60a5fa;
+  /* Azul claro */
+  --chart-3: #fbbf24;
+  /* Amarelo claro */
+  --chart-4: #f87171;
+  /* Vermelho claro */
+  --chart-5: #a78bfa;
+  /* Roxo claro */
+
   /* Sidebar no modo escuro */
   --sidebar: #1e293b;
   --sidebar-foreground: #f8fafc;
@@ -149,6 +179,7 @@
   * {
     @apply border-border outline-ring/50;
   }
+
   body {
     @apply bg-background text-foreground;
   }

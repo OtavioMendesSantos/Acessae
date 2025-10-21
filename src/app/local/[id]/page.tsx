@@ -5,6 +5,9 @@ import { useParams, useRouter } from 'next/navigation';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import ClientOnlyMap from '@/components/map/ClientOnlyMap';
+import { ReviewsSummary } from '@/components/reviews/ReviewsSummary';
+import { ReviewsList } from '@/components/reviews/ReviewsList';
+import { ReviewForm } from '@/components/reviews/ReviewForm';
 import { 
   MapPin, 
   ArrowLeft, 
@@ -12,8 +15,11 @@ import {
   User, 
   Navigation,
   Edit,
-  Trash2
+  Trash2,
+  Star,
+  MessageSquare
 } from 'lucide-react';
+import { type ReviewFormData } from '@/lib/validations';
 
 interface Location {
   id: number;
@@ -29,12 +35,37 @@ interface Location {
   created_by_name?: string;
 }
 
+interface Review {
+  id: number;
+  description: string;
+  created_at: string;
+  updated_at: string;
+  user_name: string;
+  user_id: number;
+  criteria: Array<{ name: string; rating: number }>;
+  photos: Array<{ id: number; photo_path: string }>;
+}
+
+interface ReviewsData {
+  reviews: Review[];
+  summary: {
+    totalReviews: number;
+    overallAverage: number;
+    criteriaAverages: Array<{ name: string; average: number; count: number }>;
+  };
+}
+
 export default function LocalDetailsPage() {
   const params = useParams();
   const router = useRouter();
   const [location, setLocation] = useState<Location | null>(null);
+  const [reviewsData, setReviewsData] = useState<ReviewsData | null>(null);
   const [isLoading, setIsLoading] = useState(true);
+  const [isLoadingReviews, setIsLoadingReviews] = useState(true);
   const [error, setError] = useState<string>('');
+  const [showReviewForm, setShowReviewForm] = useState(false);
+  const [editingReviewId, setEditingReviewId] = useState<number | null>(null);
+  const [currentUserId, setCurrentUserId] = useState<number | null>(null);
 
   useEffect(() => {
     const fetchLocation = async () => {
@@ -59,6 +90,41 @@ export default function LocalDetailsPage() {
       fetchLocation();
     }
   }, [params.id]);
+
+  useEffect(() => {
+    const fetchReviews = async () => {
+      try {
+        const response = await fetch(`/api/locations/${params.id}/reviews`);
+        const data = await response.json();
+
+        if (data.success) {
+          setReviewsData(data.data);
+        }
+      } catch (err) {
+        console.error('Erro ao buscar avaliações:', err);
+      } finally {
+        setIsLoadingReviews(false);
+      }
+    };
+
+    if (params.id) {
+      fetchReviews();
+    }
+  }, [params.id]);
+
+  useEffect(() => {
+    // Verificar se usuário está logado
+    const token = localStorage.getItem('token');
+    if (token) {
+      try {
+        // Decodificar token para obter user ID (implementação simples)
+        const payload = JSON.parse(atob(token.split('.')[1]));
+        setCurrentUserId(payload.userId);
+      } catch (err) {
+        console.error('Erro ao decodificar token:', err);
+      }
+    }
+  }, []);
 
   const handleEdit = () => {
     router.push(`/local/${params.id}/editar`);
@@ -93,6 +159,107 @@ export default function LocalDetailsPage() {
       const url = `https://www.google.com/maps?q=${location.latitude},${location.longitude}`;
       window.open(url, '_blank');
     }
+  };
+
+  const handleSubmitReview = async (data: ReviewFormData) => {
+    try {
+      const token = localStorage.getItem('token');
+      if (!token) {
+        alert('Você precisa estar logado para avaliar');
+        return;
+      }
+
+      const formData = new FormData();
+      formData.append('description', data.description);
+      formData.append('criteria', JSON.stringify(data.criteria));
+      
+      // Adicionar fotos se houver
+      data.photos.forEach((photo, index) => {
+        if (photo.startsWith('data:')) {
+          // Converter base64 para File
+          const byteString = atob(photo.split(',')[1]);
+          const mimeString = photo.split(',')[0].split(':')[1].split(';')[0];
+          const ab = new ArrayBuffer(byteString.length);
+          const ia = new Uint8Array(ab);
+          for (let i = 0; i < byteString.length; i++) {
+            ia[i] = byteString.charCodeAt(i);
+          }
+          const file = new File([ab], `photo_${index}.jpg`, { type: mimeString });
+          formData.append(`photo${index}`, file);
+        }
+      });
+
+      // Se estiver editando, usar API de edição
+      const isEditing = !!editingReviewId;
+      const url = isEditing 
+        ? `/api/locations/${params.id}/reviews/${editingReviewId}`
+        : `/api/locations/${params.id}/reviews`;
+      
+      const method = isEditing ? 'PUT' : 'POST';
+
+      const response = await fetch(url, {
+        method,
+        headers: {
+          'Authorization': `Bearer ${token}`
+        },
+        body: formData
+      });
+
+      const result = await response.json();
+
+      if (result.success) {
+        // Recarregar avaliações
+        const reviewsResponse = await fetch(`/api/locations/${params.id}/reviews`);
+        const reviewsData = await reviewsResponse.json();
+        if (reviewsData.success) {
+          setReviewsData(reviewsData.data);
+        }
+        
+        setShowReviewForm(false);
+        setEditingReviewId(null);
+        alert(isEditing ? 'Avaliação atualizada com sucesso!' : 'Avaliação enviada com sucesso!');
+      } else {
+        alert(`Erro ao ${isEditing ? 'atualizar' : 'enviar'} avaliação: ` + result.error);
+      }
+    } catch (err) {
+      console.error('Erro ao enviar avaliação:', err);
+      alert('Erro ao enviar avaliação');
+    }
+  };
+
+  const handleEditReview = (reviewId: number) => {
+    setEditingReviewId(reviewId);
+    setShowReviewForm(true);
+  };
+
+  const getEditingReviewData = (): Partial<ReviewFormData> | undefined => {
+    if (!editingReviewId || !reviewsData) {
+      return undefined;
+    }
+
+    const review = reviewsData.reviews.find(r => r.id === editingReviewId);
+    if (!review) {
+      return undefined;
+    }
+
+    return {
+      description: review.description,
+      criteria: review.criteria,
+      photos: review.photos.map(photo => photo.photo_path)
+    };
+  };
+
+  const handleCancelReview = () => {
+    setShowReviewForm(false);
+    setEditingReviewId(null);
+  };
+
+  const handleStartReview = () => {
+    if (!currentUserId) {
+      alert('Você precisa estar logado para avaliar');
+      return;
+    }
+    setShowReviewForm(true);
   };
 
   if (isLoading) {
@@ -256,6 +423,67 @@ export default function LocalDetailsPage() {
             </CardContent>
           </Card>
         </div>
+      </div>
+
+      {/* Seção de Avaliações */}
+      <div className="mt-8 space-y-6">
+        {/* Resumo das Avaliações */}
+        {!isLoadingReviews && reviewsData && (
+          <ReviewsSummary
+            totalReviews={reviewsData.summary.totalReviews}
+            overallAverage={reviewsData.summary.overallAverage}
+            criteriaAverages={reviewsData.summary.criteriaAverages}
+          />
+        )}
+
+        {/* Botão para Avaliar */}
+        {currentUserId && !showReviewForm && (
+          <div className="flex justify-center">
+            <Button onClick={handleStartReview} size="lg">
+              <Star className="h-5 w-5 mr-2" />
+              Avaliar Local
+            </Button>
+          </div>
+        )}
+
+        {/* Formulário de Avaliação */}
+        {showReviewForm && (
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <MessageSquare className="h-5 w-5" />
+                {editingReviewId ? 'Editar Avaliação' : 'Avaliar Local'}
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <ReviewForm
+                onSubmit={handleSubmitReview}
+                onCancel={handleCancelReview}
+                initialData={getEditingReviewData()}
+                isEditing={!!editingReviewId}
+              />
+            </CardContent>
+          </Card>
+        )}
+
+        {/* Lista de Avaliações */}
+        {!isLoadingReviews && reviewsData && (
+          <ReviewsList
+            reviews={reviewsData.reviews}
+            currentUserId={currentUserId}
+            onEditReview={handleEditReview}
+          />
+        )}
+
+        {/* Loading das avaliações */}
+        {isLoadingReviews && (
+          <Card>
+            <CardContent className="py-8 text-center">
+              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto mb-2"></div>
+              <p className="text-gray-600">Carregando avaliações...</p>
+            </CardContent>
+          </Card>
+        )}
       </div>
     </div>
   );

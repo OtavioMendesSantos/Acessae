@@ -260,8 +260,8 @@ export default function LocationMap({ locations, onLocationClick, onMapDoubleCli
         dragging={true}
       >
         <TileLayer
-          attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
-          url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+          attribution='&copy; <a href="https://carto.com/attributions">CARTO</a>'
+          url="https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png"
           maxZoom={19}
           minZoom={3}
         />
@@ -298,19 +298,10 @@ export default function LocationMap({ locations, onLocationClick, onMapDoubleCli
             key={location.id}
             position={[location.latitude, location.longitude]}
             icon={locationIcon}
-            eventHandlers={{
-              click: () => handleLocationClick(location),
-            }}
           >
             <Popup 
               className="custom-popup" 
               maxWidth={250}
-              eventHandlers={{
-                click: () => {
-                  // Clique no popup também leva para detalhes
-                  handleLocationClick(location);
-                }
-              }}
             >
               <div className="p-3">
                 <h3 className="font-semibold text-base mb-2 text-gray-900">📍 {location.name}</h3>
@@ -338,7 +329,7 @@ export default function LocationMap({ locations, onLocationClick, onMapDoubleCli
                   </button>
                 </div>
                 <p className="text-xs text-gray-400 mt-2 text-center">
-                  💡 Clique em qualquer lugar para ver detalhes
+                  💡 Clique no botão para ver detalhes
                 </p>
               </div>
             </Popup>

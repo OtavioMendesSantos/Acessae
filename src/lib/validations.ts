@@ -32,5 +32,39 @@ export const registerSchema = z
     path: ["confirmPassword"],
   });
 
+// Critérios de acessibilidade disponíveis
+export const ACCESSIBILITY_CRITERIA = [
+  'Acesso',
+  'Banheiro', 
+  'Estacionamento',
+  'Elevador',
+  'Sinalização'
+] as const;
+
+export const criteriaSchema = z.object({
+  name: z.enum(ACCESSIBILITY_CRITERIA, {
+    errorMap: () => ({ message: "Critério inválido" })
+  }),
+  rating: z.number().min(1, "Nota deve ser pelo menos 1").max(5, "Nota deve ser no máximo 5")
+});
+
+export const reviewSchema = z.object({
+  description: z
+    .string()
+    .min(1, "Descrição é obrigatória")
+    .max(1000, "Descrição deve ter no máximo 1000 caracteres"),
+  criteria: z
+    .array(criteriaSchema)
+    .min(1, "Pelo menos um critério deve ser avaliado")
+    .max(5, "Máximo 5 critérios por avaliação"),
+  photos: z
+    .array(z.string())
+    .max(5, "Máximo 5 fotos por avaliação")
+    .optional()
+    .default([])
+});
+
 export type LoginFormData = z.infer<typeof loginSchema>;
 export type RegisterFormData = z.infer<typeof registerSchema>;
+export type ReviewFormData = z.infer<typeof reviewSchema>;
+export type CriteriaData = z.infer<typeof criteriaSchema>;

@@ -76,6 +76,46 @@ ON CONFLICT (email) DO UPDATE SET
   isAdmin = TRUE,
   password = EXCLUDED.password;
 
+-- Tabela de avaliações
+CREATE TABLE IF NOT EXISTS reviews (
+  id SERIAL PRIMARY KEY,
+  location_id INTEGER NOT NULL REFERENCES locations(id) ON DELETE CASCADE,
+  user_id INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+  description TEXT NOT NULL CHECK (LENGTH(description) <= 1000),
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  UNIQUE(location_id, user_id)
+);
+
+-- Tabela de critérios das avaliações
+CREATE TABLE IF NOT EXISTS review_criteria (
+  id SERIAL PRIMARY KEY,
+  review_id INTEGER NOT NULL REFERENCES reviews(id) ON DELETE CASCADE,
+  criteria_name VARCHAR(50) NOT NULL,
+  rating INTEGER NOT NULL CHECK (rating >= 1 AND rating <= 5),
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+-- Tabela de fotos das avaliações
+CREATE TABLE IF NOT EXISTS review_photos (
+  id SERIAL PRIMARY KEY,
+  review_id INTEGER NOT NULL REFERENCES reviews(id) ON DELETE CASCADE,
+  photo_path VARCHAR(500) NOT NULL,
+  uploaded_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+-- Índices para as tabelas de avaliações
+CREATE INDEX IF NOT EXISTS idx_reviews_location_id ON reviews(location_id);
+CREATE INDEX IF NOT EXISTS idx_reviews_user_id ON reviews(user_id);
+CREATE INDEX IF NOT EXISTS idx_review_criteria_review_id ON review_criteria(review_id);
+CREATE INDEX IF NOT EXISTS idx_review_photos_review_id ON review_photos(review_id);
+
+-- Trigger para atualizar updated_at na tabela reviews
+CREATE TRIGGER update_reviews_updated_at 
+    BEFORE UPDATE ON reviews 
+    FOR EACH ROW 
+    EXECUTE FUNCTION update_updated_at_column();
+
 -- Inserir alguns locais de exemplo (São Paulo, Brasil)
 INSERT INTO locations (name, description, address, latitude, longitude, category, created_by) VALUES
 ('Parque Ibirapuera', 'Um dos principais parques urbanos de São Paulo', 'Av. Pedro Álvares Cabral - Vila Mariana, São Paulo - SP', -23.5875, -46.6571, 'Parque', 1),
