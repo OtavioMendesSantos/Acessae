@@ -163,8 +163,10 @@ export async function POST(
     );
 
     if (existingReview.rows.length > 0) {
+      // Se já tem avaliação, retornar erro informativo mas não bloquear
+      // O frontend agora deve sempre abrir em modo de edição
       return NextResponse.json(
-        { success: false, error: "Você já avaliou este local. Use a API de edição para modificar sua avaliação." },
+        { success: false, error: "Você já avaliou este local. Use o botão de editar para modificar sua avaliação." },
         { status: 409 }
       );
     }

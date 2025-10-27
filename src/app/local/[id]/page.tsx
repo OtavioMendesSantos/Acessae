@@ -17,8 +17,17 @@ import {
   Edit,
   Trash2,
   Star,
-  MessageSquare
+  MessageSquare,
+  CheckCircle
 } from 'lucide-react';
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from '@/components/ui/dialog';
 import { type ReviewFormData } from '@/lib/validations';
 
 interface Location {
@@ -66,6 +75,8 @@ export default function LocalDetailsPage() {
   const [showReviewForm, setShowReviewForm] = useState(false);
   const [editingReviewId, setEditingReviewId] = useState<number | null>(null);
   const [currentUserId, setCurrentUserId] = useState<number | null>(null);
+  const [showSuccessModal, setShowSuccessModal] = useState(false);
+  const [successMessage, setSuccessMessage] = useState('');
 
   useEffect(() => {
     const fetchLocation = async () => {
@@ -217,8 +228,23 @@ export default function LocalDetailsPage() {
         
         setShowReviewForm(false);
         setEditingReviewId(null);
-        alert(isEditing ? 'Avaliação atualizada com sucesso!' : 'Avaliação enviada com sucesso!');
+        
+        // Mostrar modal de sucesso
+        const message = isEditing ? 'Avaliação atualizada com sucesso!' : 'Avaliação enviada com sucesso!';
+        setSuccessMessage(message);
+        setShowSuccessModal(true);
       } else {
+        // Se o erro for sobre já ter uma avaliação, abrir em modo de edição
+        if (result.error && result.error.includes('já avaliou este local')) {
+          if (reviewsData) {
+            const userReview = reviewsData.reviews.find(review => review.user_id === currentUserId);
+            if (userReview) {
+              setEditingReviewId(userReview.id);
+              alert('Você já avaliou este local. O formulário foi aberto em modo de edição.');
+              return;
+            }
+          }
+        }
         alert(`Erro ao ${isEditing ? 'atualizar' : 'enviar'} avaliação: ` + result.error);
       }
     } catch (err) {
@@ -259,6 +285,20 @@ export default function LocalDetailsPage() {
       alert('Você precisa estar logado para avaliar');
       return;
     }
+
+    // Verificar se o usuário já tem uma avaliação para este local
+    if (reviewsData) {
+      const userReview = reviewsData.reviews.find(review => review.user_id === currentUserId);
+      if (userReview) {
+        // Se já tem avaliação, abrir em modo de edição
+        setEditingReviewId(userReview.id);
+        setShowReviewForm(true);
+        return;
+      }
+    }
+
+    // Se não tem avaliação, abrir formulário novo
+    setEditingReviewId(null);
     setShowReviewForm(true);
   };
 
@@ -485,6 +525,31 @@ export default function LocalDetailsPage() {
           </Card>
         )}
       </div>
+
+      {/* Modal de Sucesso */}
+      <Dialog open={showSuccessModal} onOpenChange={setShowSuccessModal}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <div className="flex items-center justify-center mb-4">
+              <CheckCircle className="h-16 w-16 text-green-500" />
+            </div>
+            <DialogTitle className="text-center text-xl font-semibold text-gray-900 dark:text-white">
+              Sucesso!
+            </DialogTitle>
+            <DialogDescription className="text-center text-gray-600 dark:text-gray-300">
+              {successMessage}
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter className="flex justify-center">
+            <Button 
+              onClick={() => setShowSuccessModal(false)}
+              className="bg-blue-600 hover:bg-blue-700 px-8"
+            >
+              Entendi
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
