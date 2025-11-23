@@ -1,25 +1,11 @@
 'use client';
 
-import { useEffect, useState } from 'react';
-import { useParams, useRouter } from 'next/navigation';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
 import ClientOnlyMap from '@/components/map/ClientOnlyMap';
-import { ReviewsSummary } from '@/components/reviews/ReviewsSummary';
-import { ReviewsList } from '@/components/reviews/ReviewsList';
 import { ReviewForm } from '@/components/reviews/ReviewForm';
-import { 
-  MapPin, 
-  ArrowLeft, 
-  Calendar, 
-  User, 
-  Navigation,
-  Edit,
-  Trash2,
-  Star,
-  MessageSquare,
-  CheckCircle
-} from 'lucide-react';
+import { ReviewsList } from '@/components/reviews/ReviewsList';
+import { ReviewsSummary } from '@/components/reviews/ReviewsSummary';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import {
   Dialog,
   DialogContent,
@@ -28,7 +14,21 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog';
-import { type ReviewFormData } from '@/lib/validations';
+import { type CriteriaData, type ReviewFormData } from '@/lib/validations';
+import {
+  ArrowLeft,
+  Calendar,
+  CheckCircle,
+  Edit,
+  MapPin,
+  MessageSquare,
+  Navigation,
+  Star,
+  Trash2,
+  User
+} from 'lucide-react';
+import { useParams, useRouter } from 'next/navigation';
+import { useEffect, useState } from 'react';
 
 interface Location {
   id: number;
@@ -51,6 +51,7 @@ interface Review {
   updated_at: string;
   user_name: string;
   user_id: number;
+  location_id: number;
   criteria: Array<{ name: string; rating: number }>;
   photos: Array<{ id: number; photo_path: string }>;
 }
@@ -183,7 +184,7 @@ export default function LocalDetailsPage() {
       const formData = new FormData();
       formData.append('description', data.description);
       formData.append('criteria', JSON.stringify(data.criteria));
-      
+
       // Adicionar fotos se houver
       data.photos.forEach((photo, index) => {
         if (photo.startsWith('data:')) {
@@ -202,10 +203,10 @@ export default function LocalDetailsPage() {
 
       // Se estiver editando, usar API de edição
       const isEditing = !!editingReviewId;
-      const url = isEditing 
+      const url = isEditing
         ? `/api/locations/${params.id}/reviews/${editingReviewId}`
         : `/api/locations/${params.id}/reviews`;
-      
+
       const method = isEditing ? 'PUT' : 'POST';
 
       const response = await fetch(url, {
@@ -225,10 +226,10 @@ export default function LocalDetailsPage() {
         if (reviewsData.success) {
           setReviewsData(reviewsData.data);
         }
-        
+
         setShowReviewForm(false);
         setEditingReviewId(null);
-        
+
         // Mostrar modal de sucesso
         const message = isEditing ? 'Avaliação atualizada com sucesso!' : 'Avaliação enviada com sucesso!';
         setSuccessMessage(message);
@@ -270,7 +271,7 @@ export default function LocalDetailsPage() {
 
     return {
       description: review.description,
-      criteria: review.criteria,
+      criteria: review.criteria as CriteriaData[],
       photos: review.photos.map(photo => photo.photo_path)
     };
   };
@@ -457,7 +458,7 @@ export default function LocalDetailsPage() {
             <CardContent className="p-0">
               <ClientOnlyMap
                 locations={[location]}
-                onLocationClick={() => {}} // Não faz nada pois já estamos na página de detalhes
+                onLocationClick={() => { }} // Não faz nada pois já estamos na página de detalhes
                 className="rounded-lg"
               />
             </CardContent>
@@ -510,7 +511,7 @@ export default function LocalDetailsPage() {
         {!isLoadingReviews && reviewsData && (
           <ReviewsList
             reviews={reviewsData.reviews}
-            currentUserId={currentUserId}
+            currentUserId={currentUserId ?? undefined}
             onEditReview={handleEditReview}
           />
         )}
@@ -541,7 +542,7 @@ export default function LocalDetailsPage() {
             </DialogDescription>
           </DialogHeader>
           <DialogFooter className="flex justify-center">
-            <Button 
+            <Button
               onClick={() => setShowSuccessModal(false)}
               className="bg-blue-600 hover:bg-blue-700 px-8"
             >

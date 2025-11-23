@@ -103,7 +103,7 @@ function MapClickHandler({ onLocationSelect }: { onLocationSelect: (lat: number,
   const map = useMap();
 
   useEffect(() => {
-    const handleClick = (e: any) => {
+    const handleClick = (e: { latlng: { lat: number; lng: number } }) => {
       const { lat, lng } = e.latlng;
       onLocationSelect(lat, lng);
     };

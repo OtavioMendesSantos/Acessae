@@ -28,11 +28,12 @@ export function ReviewForm({
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   const form = useForm<ReviewFormData>({
-    resolver: zodResolver(reviewSchema),
+    // Type assertion needed: zodResolver infers photos as optional in input, but default ensures it's always an array in output
+    resolver: zodResolver(reviewSchema) as any,
     defaultValues: {
       description: initialData?.description || '',
       criteria: initialData?.criteria || [],
-      photos: initialData?.photos || []
+      photos: initialData?.photos ?? []
     }
   });
 

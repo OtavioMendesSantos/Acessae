@@ -75,7 +75,7 @@ export async function PUT(
 
     if (!validationResult.success) {
       return NextResponse.json(
-        { success: false, error: "Dados inválidos", details: validationResult.error.errors },
+        { success: false, error: "Dados inválidos", details: validationResult.error.issues },
         { status: 400 }
       );
     }

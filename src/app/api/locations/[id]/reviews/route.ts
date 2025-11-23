@@ -27,6 +27,7 @@ export async function GET(
         r.description,
         r.created_at,
         r.updated_at,
+        r.location_id,
         u.name as user_name,
         u.id as user_id
       FROM reviews r
@@ -91,11 +92,14 @@ export async function GET(
       return acc;
     }, {} as Record<string, { total: number; count: number }>);
 
-    const criteriaAveragesArray = Object.entries(criteriaAverages).map(([name, data]) => ({
-      name,
-      average: data.total / data.count,
-      count: data.count
-    }));
+    const criteriaAveragesArray = Object.entries(criteriaAverages).map(([name, data]) => {
+      const typedData = data as { total: number; count: number };
+      return {
+        name,
+        average: typedData.total / typedData.count,
+        count: typedData.count
+      };
+    });
 
     const overallAverage = criteriaAveragesArray.length > 0 
       ? criteriaAveragesArray.reduce((sum, curr) => sum + curr.average, 0) / criteriaAveragesArray.length
@@ -186,7 +190,7 @@ export async function POST(
 
     if (!validationResult.success) {
       return NextResponse.json(
-        { success: false, error: "Dados inválidos", details: validationResult.error.errors },
+        { success: false, error: "Dados inválidos", details: validationResult.error.issues },
         { status: 400 }
       );
     }

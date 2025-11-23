@@ -55,7 +55,7 @@ export default function MapaPage() {
 
   // Filtrar locais por categoria e busca
   useEffect(() => {
-    let baseLocations = isSearchActive ? searchResults : locations;
+    const baseLocations = isSearchActive ? searchResults : locations;
     
     if (selectedCategory === '') {
       setFilteredLocations(baseLocations);

@@ -42,7 +42,7 @@ async function verifyAdmin(request: NextRequest) {
 // GET - Buscar usuário específico
 export async function GET(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     const adminId = await verifyAdmin(request);
@@ -53,7 +53,7 @@ export async function GET(
       );
     }
 
-    const userId = params.id;
+    const { id: userId } = await params;
 
     const result = await pool.query(
       'SELECT id, name, email, isAdmin, created_at, updated_at FROM users WHERE id = $1',
@@ -90,7 +90,7 @@ export async function GET(
 // PUT - Atualizar usuário
 export async function PUT(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     const adminId = await verifyAdmin(request);
@@ -101,7 +101,7 @@ export async function PUT(
       );
     }
 
-    const userId = params.id;
+    const { id: userId } = await params;
     const body = await request.json();
     const validatedData = updateUserSchema.parse(body);
 
@@ -209,7 +209,7 @@ export async function PUT(
 // DELETE - Deletar usuário
 export async function DELETE(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     const adminId = await verifyAdmin(request);
@@ -220,7 +220,7 @@ export async function DELETE(
       );
     }
 
-    const userId = params.id;
+    const { id: userId } = await params;
 
     // Verificar se não está tentando deletar a si mesmo
     if (adminId === userId) {

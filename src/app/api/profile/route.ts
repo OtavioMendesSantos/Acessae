@@ -96,11 +96,14 @@ export async function PUT(request: NextRequest) {
       ? updateAdminProfileSchema.parse(body)
       : updateProfileSchema.parse(body);
 
+    // Type assertion para admin data quando isAdmin é true
+    const adminData = isAdmin ? validatedData as z.infer<typeof updateAdminProfileSchema> : null;
+
     // Verificar se email já existe (apenas para admins)
-    if (isAdmin && validatedData.email && validatedData.email !== user.email) {
+    if (isAdmin && adminData && adminData.email && adminData.email !== user.email) {
       const emailCheck = await pool.query(
         'SELECT id FROM users WHERE email = $1 AND id != $2',
-        [validatedData.email, userId]
+        [adminData.email, userId]
       );
 
       if (emailCheck.rows.length > 0) {
@@ -112,8 +115,8 @@ export async function PUT(request: NextRequest) {
     }
 
     // Verificar senha atual se estiver tentando alterar a senha (apenas para admins)
-    if (isAdmin && validatedData.newPassword) {
-      if (!validatedData.currentPassword) {
+    if (isAdmin && adminData && adminData.newPassword) {
+      if (!adminData.currentPassword) {
         return NextResponse.json(
           { message: 'Senha atual é obrigatória para alterar a senha' },
           { status: 400 }
@@ -122,7 +125,7 @@ export async function PUT(request: NextRequest) {
 
       const bcrypt = await import('bcryptjs');
       const isCurrentPasswordValid = await bcrypt.compare(
-        validatedData.currentPassword, 
+        adminData.currentPassword, 
         user.password
       );
 
@@ -145,14 +148,14 @@ export async function PUT(request: NextRequest) {
       paramCount++;
     }
 
-    if (isAdmin && validatedData.email !== undefined) {
+    if (isAdmin && adminData && adminData.email !== undefined) {
       updateFields.push(`email = $${paramCount}`);
-      values.push(validatedData.email);
+      values.push(adminData.email);
       paramCount++;
     }
 
-    if (isAdmin && validatedData.newPassword !== undefined) {
-      const hashedPassword = await hashPassword(validatedData.newPassword);
+    if (isAdmin && adminData && adminData.newPassword !== undefined) {
+      const hashedPassword = await hashPassword(adminData.newPassword);
       updateFields.push(`password = $${paramCount}`);
       values.push(hashedPassword);
       paramCount++;

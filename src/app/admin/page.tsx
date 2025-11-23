@@ -1,21 +1,20 @@
 'use client';
 
-import { useEffect, useState } from 'react';
-import { useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
-import { 
-  ArrowLeft, 
-  Plus, 
-  Search, 
-  Edit, 
-  Trash2, 
-  ChevronLeft, 
+import {
+  ArrowLeft,
+  ChevronLeft,
   ChevronRight,
-  Users,
-  UserPlus
+  Edit,
+  Search,
+  Trash2,
+  UserPlus,
+  Users
 } from 'lucide-react';
+import { useRouter } from 'next/navigation';
+import { useEffect, useState } from 'react';
 
 interface User {
   id: number;
@@ -191,9 +190,9 @@ export default function AdminPage() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center py-6">
             <div className="flex items-center space-x-4">
-              <Button 
-                onClick={() => router.push('/home')} 
-                variant="outline" 
+              <Button
+                onClick={() => router.push('/home')}
+                variant="outline"
                 size="sm"
               >
                 <ArrowLeft className="h-4 w-4 mr-2" />
@@ -203,7 +202,7 @@ export default function AdminPage() {
                 Administração de Usuários
               </h1>
             </div>
-            <Button 
+            <Button
               onClick={() => setShowUserForm(true)}
               className="bg-blue-600 hover:bg-blue-700"
             >
@@ -271,11 +270,10 @@ export default function AdminPage() {
                           <td className="p-3">{user.name}</td>
                           <td className="p-3">{user.email}</td>
                           <td className="p-3">
-                            <span className={`px-2 py-1 rounded-full text-xs font-medium ${
-                              user.isAdmin 
-                                ? 'bg-blue-100 text-blue-800' 
-                                : 'bg-gray-100 text-gray-800'
-                            }`}>
+                            <span className={`px-2 py-1 rounded-full text-xs font-medium ${user.isAdmin
+                              ? 'bg-blue-100 text-blue-800'
+                              : 'bg-gray-100 text-gray-800'
+                              }`}>
                               {user.isAdmin ? 'Administrador' : 'Usuário'}
                             </span>
                           </td>
@@ -357,14 +355,14 @@ export default function AdminPage() {
 }
 
 // Componente do modal de formulário
-function UserFormModal({ 
-  user, 
-  onClose, 
-  onSuccess 
-}: { 
-  user: User | null; 
-  onClose: () => void; 
-  onSuccess: () => void; 
+function UserFormModal({
+  user,
+  onClose,
+  onSuccess
+}: {
+  user: User | null;
+  onClose: () => void;
+  onSuccess: () => void;
 }) {
   const [formData, setFormData] = useState({
     name: user?.name || '',
@@ -386,10 +384,10 @@ function UserFormModal({
       const method = user ? 'PUT' : 'POST';
 
       // Se é edição e não tem senha, remove do payload
-      const payload = { ...formData };
-      if (user && !payload.password) {
-        delete payload.password;
-      }
+      const { password, ...payloadWithoutPassword } = formData;
+      const payload = user && !password
+        ? payloadWithoutPassword
+        : formData;
 
       const response = await fetch(url, {
         method,
@@ -405,7 +403,7 @@ function UserFormModal({
       } else {
         const error = await response.json();
         if (error.errors) {
-          setErrors(error.errors.reduce((acc: any, err: any) => {
+          setErrors(error.errors.reduce((acc: Record<string, string>, err: { path: string[]; message: string }) => {
             acc[err.path[0]] = err.message;
             return acc;
           }, {}));
@@ -427,7 +425,7 @@ function UserFormModal({
         <h2 className="text-xl font-bold mb-4">
           {user ? 'Editar Usuário' : 'Novo Usuário'}
         </h2>
-        
+
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>
             <label className="block text-sm font-medium mb-1">Nome</label>

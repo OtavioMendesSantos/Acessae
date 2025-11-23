@@ -28,7 +28,7 @@ export function CriteriaSelector({
   const addCriterion = () => {
     if (selectedCriterion && !selectedCriteria.some(c => c.name === selectedCriterion)) {
       const newCriterion: CriteriaData = {
-        name: selectedCriterion as any,
+        name: selectedCriterion as CriteriaData['name'],
         rating: 1
       };
       onCriteriaChange([...selectedCriteria, newCriterion]);

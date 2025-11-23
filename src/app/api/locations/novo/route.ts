@@ -1,7 +1,7 @@
-import { NextRequest, NextResponse } from "next/server";
 import pool from "@/lib/db";
+import { NextRequest, NextResponse } from "next/server";
 
-export async function GET(request: NextRequest) {
+export async function GET(_request: NextRequest) {
   try {
     // Retorna um template vazio para criação de novo local
     return NextResponse.json({
@@ -17,8 +17,8 @@ export async function GET(request: NextRequest) {
         is_active: true,
         created_at: null,
         updated_at: null,
-        created_by_name: null
-      }
+        created_by_name: null,
+      },
     });
   } catch (error) {
     console.error("Erro ao buscar template de novo local:", error);
@@ -80,4 +80,3 @@ export async function POST(request: NextRequest) {
     );
   }
 }
-

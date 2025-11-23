@@ -43,7 +43,7 @@ export const ACCESSIBILITY_CRITERIA = [
 
 export const criteriaSchema = z.object({
   name: z.enum(ACCESSIBILITY_CRITERIA, {
-    errorMap: () => ({ message: "Critério inválido" })
+    message: "Critério inválido"
   }),
   rating: z.number().min(1, "Nota deve ser pelo menos 1").max(5, "Nota deve ser no máximo 5")
 });
@@ -60,11 +60,10 @@ export const reviewSchema = z.object({
   photos: z
     .array(z.string())
     .max(5, "Máximo 5 fotos por avaliação")
-    .optional()
     .default([])
 });
 
 export type LoginFormData = z.infer<typeof loginSchema>;
 export type RegisterFormData = z.infer<typeof registerSchema>;
-export type ReviewFormData = z.infer<typeof reviewSchema>;
+export type ReviewFormData = z.output<typeof reviewSchema>;
 export type CriteriaData = z.infer<typeof criteriaSchema>;

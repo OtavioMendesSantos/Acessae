@@ -16,7 +16,7 @@ import {
   DialogTitle,
 } from '@/components/ui/dialog';
 import { ReviewForm } from '@/components/reviews/ReviewForm';
-import { type ReviewFormData } from '@/lib/validations';
+import { type ReviewFormData, type CriteriaData } from '@/lib/validations';
 
 interface UserProfile {
   id: number;
@@ -146,7 +146,12 @@ export default function ProfilePage() {
       const token = localStorage.getItem('token');
       
       // Preparar dados para envio
-      const updateData: any = {};
+      const updateData: {
+        name?: string;
+        email?: string;
+        currentPassword?: string;
+        newPassword?: string;
+      } = {};
       
       if (formData.name !== user?.name) {
         updateData.name = formData.name;
@@ -281,10 +286,19 @@ export default function ProfilePage() {
       formData.append('criteria', JSON.stringify(data.criteria));
       formData.append('keepPhotos', JSON.stringify(data.photos.map((_, index) => index)));
 
-      // Adicionar novas fotos se houver
+      // Adicionar novas fotos se houver (base64 strings)
       data.photos.forEach((photo, index) => {
-        if (photo instanceof File) {
-          formData.append(`photo${index}`, photo);
+        if (photo.startsWith('data:')) {
+          // Converter base64 para File
+          const byteString = atob(photo.split(',')[1]);
+          const mimeString = photo.split(',')[0].split(':')[1].split(';')[0];
+          const ab = new ArrayBuffer(byteString.length);
+          const ia = new Uint8Array(ab);
+          for (let i = 0; i < byteString.length; i++) {
+            ia[i] = byteString.charCodeAt(i);
+          }
+          const file = new File([ab], `photo_${index}.jpg`, { type: mimeString });
+          formData.append(`photo${index}`, file);
         }
       });
 
@@ -696,7 +710,7 @@ export default function ProfilePage() {
                 onCancel={handleCancelEditReview}
                 initialData={{
                   description: editingReview.description,
-                  criteria: editingReview.criteria,
+                  criteria: editingReview.criteria as CriteriaData[],
                   photos: editingReview.photos.map(photo => photo.photo_path)
                 }}
                 isEditing={true}
