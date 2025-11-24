@@ -11,8 +11,6 @@ export const UPLOAD_DIR = isRailwayVolumeMounted
   ? RAILWAY_UPLOAD_DIR
   : join(process.cwd(), "uploads");
 
-console.log(UPLOAD_DIR);
-
 export const REVIEWS_UPLOAD_DIR = join(UPLOAD_DIR, "reviews");
 
 export function ensureUploadDir() {
