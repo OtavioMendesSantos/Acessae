@@ -16,6 +16,11 @@ const geistMono = Geist_Mono({
 export const metadata: Metadata = {
   title: "Acessae - Sistema de Acessibilidade",
   description: "Sistema para cadastro e visualização de locais acessíveis",
+  icons: {
+    icon: "/assets/LOGO.png",
+    shortcut: "/assets/LOGO.png",
+    apple: "/assets/LOGO.png",
+  },
 };
 
 export default function RootLayout({
