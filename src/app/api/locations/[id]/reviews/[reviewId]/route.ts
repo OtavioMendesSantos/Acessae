@@ -1,10 +1,10 @@
-import { NextRequest, NextResponse } from "next/server";
-import pool from "@/lib/db";
 import { verifyToken } from "@/lib/auth";
+import pool from "@/lib/db";
 import { reviewSchema } from "@/lib/validations";
-import { writeFile, unlink, mkdir } from "fs/promises";
-import { join } from "path";
 import { existsSync } from "fs";
+import { mkdir, unlink, writeFile } from "fs/promises";
+import { NextRequest, NextResponse } from "next/server";
+import { join } from "path";
 
 export async function PUT(
   request: NextRequest,
@@ -56,7 +56,10 @@ export async function PUT(
 
     if (reviewResult.rows[0].user_id !== userId) {
       return NextResponse.json(
-        { success: false, error: "Você só pode editar suas próprias avaliações" },
+        {
+          success: false,
+          error: "Você só pode editar suas próprias avaliações",
+        },
         { status: 403 }
       );
     }
@@ -71,12 +74,16 @@ export async function PUT(
     const validationResult = reviewSchema.safeParse({
       description,
       criteria,
-      photos: [] // Fotos serão processadas separadamente
+      photos: [], // Fotos serão processadas separadamente
     });
 
     if (!validationResult.success) {
       return NextResponse.json(
-        { success: false, error: "Dados inválidos", details: validationResult.error.issues },
+        {
+          success: false,
+          error: "Dados inválidos",
+          details: validationResult.error.issues,
+        },
         { status: 400 }
       );
     }
@@ -84,7 +91,7 @@ export async function PUT(
     // Iniciar transação
     const client = await pool.connect();
     try {
-      await client.query('BEGIN');
+      await client.query("BEGIN");
 
       // Atualizar avaliação
       await client.query(
@@ -95,10 +102,9 @@ export async function PUT(
       );
 
       // Remover critérios antigos
-      await client.query(
-        "DELETE FROM review_criteria WHERE review_id = $1",
-        [reviewId]
-      );
+      await client.query("DELETE FROM review_criteria WHERE review_id = $1", [
+        reviewId,
+      ]);
 
       // Inserir novos critérios
       for (const criterion of criteria) {
@@ -125,28 +131,32 @@ export async function PUT(
           // Remover arquivo físico
           try {
             // photo.photo_path já vem como /uploads/reviews/filename
-            const filename = photo.photo_path.replace('/uploads/reviews/', '');
-            const filepath = join(process.cwd(), 'uploads', 'reviews', filename);
+            const filename = photo.photo_path.replace("/uploads/reviews/", "");
+            const filepath = join(
+              process.cwd(),
+              "uploads",
+              "reviews",
+              filename
+            );
             await unlink(filepath);
           } catch (error) {
-            console.warn('Erro ao remover arquivo:', error);
+            console.warn("Erro ao remover arquivo:", error);
           }
 
           // Remover do banco
-          await client.query(
-            "DELETE FROM review_photos WHERE id = $1",
-            [photo.id]
-          );
+          await client.query("DELETE FROM review_photos WHERE id = $1", [
+            photo.id,
+          ]);
         }
       }
 
       // Adicionar novas fotos
       const photoFiles = Array.from(formData.entries())
-        .filter(([key]) => key.startsWith('photo'))
+        .filter(([key]) => key.startsWith("photo"))
         .map(([, file]) => file as File);
 
       // Garantir que o diretório existe
-      const uploadsDir = join(process.cwd(), 'uploads', 'reviews');
+      const uploadsDir = join(process.cwd(), "uploads", "reviews");
       if (!existsSync(uploadsDir)) {
         await mkdir(uploadsDir, { recursive: true });
       }
@@ -156,13 +166,15 @@ export async function PUT(
         if (file && file.size > 0) {
           const bytes = await file.arrayBuffer();
           const buffer = Buffer.from(bytes);
-          
+
           const timestamp = Date.now();
-          const filename = `${id}_${userId}_${timestamp}_${i}.${file.name.split('.').pop()}`;
+          const filename = `${id}_${userId}_${timestamp}_${i}.${file.name
+            .split(".")
+            .pop()}`;
           const filepath = join(uploadsDir, filename);
-          
+
           await writeFile(filepath, buffer);
-          
+
           await client.query(
             `INSERT INTO review_photos (review_id, photo_path)
              VALUES ($1, $2)`,
@@ -171,11 +183,11 @@ export async function PUT(
         }
       }
 
-      await client.query('COMMIT');
+      await client.query("COMMIT");
 
       return NextResponse.json({ success: true });
     } catch (error) {
-      await client.query('ROLLBACK');
+      await client.query("ROLLBACK");
       throw error;
     } finally {
       client.release();
@@ -239,7 +251,10 @@ export async function DELETE(
 
     if (reviewResult.rows[0].user_id !== userId) {
       return NextResponse.json(
-        { success: false, error: "Você só pode deletar suas próprias avaliações" },
+        {
+          success: false,
+          error: "Você só pode deletar suas próprias avaliações",
+        },
         { status: 403 }
       );
     }
@@ -254,19 +269,16 @@ export async function DELETE(
     for (const photo of photosResult.rows) {
       try {
         // photo.photo_path já vem como /uploads/reviews/filename
-        const filename = photo.photo_path.replace('/uploads/reviews/', '');
-        const filepath = join(process.cwd(), 'uploads', 'reviews', filename);
+        const filename = photo.photo_path.replace("/uploads/reviews/", "");
+        const filepath = join(process.cwd(), "uploads", "reviews", filename);
         await unlink(filepath);
       } catch (error) {
-        console.warn('Erro ao remover arquivo:', error);
+        console.warn("Erro ao remover arquivo:", error);
       }
     }
 
     // Deletar avaliação (cascade vai remover critérios e fotos)
-    await pool.query(
-      "DELETE FROM reviews WHERE id = $1",
-      [reviewId]
-    );
+    await pool.query("DELETE FROM reviews WHERE id = $1", [reviewId]);
 
     return NextResponse.json({ success: true });
   } catch (error) {
@@ -277,4 +289,3 @@ export async function DELETE(
     );
   }
 }
-

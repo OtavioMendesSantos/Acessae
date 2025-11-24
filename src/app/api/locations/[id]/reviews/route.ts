@@ -1,10 +1,10 @@
-import { NextRequest, NextResponse } from "next/server";
-import pool from "@/lib/db";
 import { verifyToken } from "@/lib/auth";
+import pool from "@/lib/db";
 import { reviewSchema } from "@/lib/validations";
-import { writeFile, mkdir } from "fs/promises";
-import { join } from "path";
 import { existsSync } from "fs";
+import { mkdir, writeFile } from "fs/promises";
+import { NextRequest, NextResponse } from "next/server";
+import { join } from "path";
 
 export async function GET(
   request: NextRequest,
@@ -22,7 +22,8 @@ export async function GET(
     }
 
     // Buscar todas as avaliações do local com critérios e fotos
-    const reviewsResult = await pool.query(`
+    const reviewsResult = await pool.query(
+      `
       SELECT 
         r.id,
         r.description,
@@ -35,10 +36,13 @@ export async function GET(
       JOIN users u ON r.user_id = u.id
       WHERE r.location_id = $1
       ORDER BY r.created_at DESC
-    `, [id]);
+    `,
+      [id]
+    );
 
     // Buscar critérios de cada avaliação
-    const criteriaResult = await pool.query(`
+    const criteriaResult = await pool.query(
+      `
       SELECT 
         rc.review_id,
         rc.criteria_name,
@@ -46,10 +50,13 @@ export async function GET(
       FROM review_criteria rc
       WHERE rc.review_id = ANY($1)
       ORDER BY rc.review_id, rc.criteria_name
-    `, [reviewsResult.rows.map(r => r.id)]);
+    `,
+      [reviewsResult.rows.map((r) => r.id)]
+    );
 
     // Buscar fotos de cada avaliação
-    const photosResult = await pool.query(`
+    const photosResult = await pool.query(
+      `
       SELECT 
         rp.review_id,
         rp.id,
@@ -57,28 +64,30 @@ export async function GET(
       FROM review_photos rp
       WHERE rp.review_id = ANY($1)
       ORDER BY rp.review_id, rp.uploaded_at
-    `, [reviewsResult.rows.map(r => r.id)]);
+    `,
+      [reviewsResult.rows.map((r) => r.id)]
+    );
 
     // Organizar dados
-    const reviews = reviewsResult.rows.map(review => {
+    const reviews = reviewsResult.rows.map((review) => {
       const criteria = criteriaResult.rows
-        .filter(c => c.review_id === review.id)
-        .map(c => ({
+        .filter((c) => c.review_id === review.id)
+        .map((c) => ({
           name: c.criteria_name,
-          rating: c.rating
+          rating: c.rating,
         }));
 
       const photos = photosResult.rows
-        .filter(p => p.review_id === review.id)
-        .map(p => ({
+        .filter((p) => p.review_id === review.id)
+        .map((p) => ({
           id: p.id,
-          photo_path: p.photo_path
+          photo_path: p.photo_path,
         }));
 
       return {
         ...review,
         criteria,
-        photos
+        photos,
       };
     });
 
@@ -93,18 +102,22 @@ export async function GET(
       return acc;
     }, {} as Record<string, { total: number; count: number }>);
 
-    const criteriaAveragesArray = Object.entries(criteriaAverages).map(([name, data]) => {
-      const typedData = data as { total: number; count: number };
-      return {
-        name,
-        average: typedData.total / typedData.count,
-        count: typedData.count
-      };
-    });
+    const criteriaAveragesArray = Object.entries(criteriaAverages).map(
+      ([name, data]) => {
+        const typedData = data as { total: number; count: number };
+        return {
+          name,
+          average: typedData.total / typedData.count,
+          count: typedData.count,
+        };
+      }
+    );
 
-    const overallAverage = criteriaAveragesArray.length > 0 
-      ? criteriaAveragesArray.reduce((sum, curr) => sum + curr.average, 0) / criteriaAveragesArray.length
-      : 0;
+    const overallAverage =
+      criteriaAveragesArray.length > 0
+        ? criteriaAveragesArray.reduce((sum, curr) => sum + curr.average, 0) /
+          criteriaAveragesArray.length
+        : 0;
 
     return NextResponse.json({
       success: true,
@@ -113,9 +126,9 @@ export async function GET(
         summary: {
           totalReviews: reviews.length,
           overallAverage,
-          criteriaAverages: criteriaAveragesArray
-        }
-      }
+          criteriaAverages: criteriaAveragesArray,
+        },
+      },
     });
   } catch (error) {
     console.error("Erro ao buscar avaliações:", error);
@@ -171,7 +184,11 @@ export async function POST(
       // Se já tem avaliação, retornar erro informativo mas não bloquear
       // O frontend agora deve sempre abrir em modo de edição
       return NextResponse.json(
-        { success: false, error: "Você já avaliou este local. Use o botão de editar para modificar sua avaliação." },
+        {
+          success: false,
+          error:
+            "Você já avaliou este local. Use o botão de editar para modificar sua avaliação.",
+        },
         { status: 409 }
       );
     }
@@ -186,12 +203,16 @@ export async function POST(
     const validationResult = reviewSchema.safeParse({
       description,
       criteria,
-      photos: [] // Fotos serão processadas separadamente
+      photos: [], // Fotos serão processadas separadamente
     });
 
     if (!validationResult.success) {
       return NextResponse.json(
-        { success: false, error: "Dados inválidos", details: validationResult.error.issues },
+        {
+          success: false,
+          error: "Dados inválidos",
+          details: validationResult.error.issues,
+        },
         { status: 400 }
       );
     }
@@ -199,7 +220,7 @@ export async function POST(
     // Iniciar transação
     const client = await pool.connect();
     try {
-      await client.query('BEGIN');
+      await client.query("BEGIN");
 
       // Criar avaliação
       const reviewResult = await client.query(
@@ -222,11 +243,11 @@ export async function POST(
 
       // Processar fotos
       const photoFiles = Array.from(formData.entries())
-        .filter(([key]) => key.startsWith('photo'))
+        .filter(([key]) => key.startsWith("photo"))
         .map(([, file]) => file as File);
 
       // Garantir que o diretório existe
-      const uploadsDir = join(process.cwd(), 'uploads', 'reviews');
+      const uploadsDir = join(process.cwd(), "uploads", "reviews");
       if (!existsSync(uploadsDir)) {
         await mkdir(uploadsDir, { recursive: true });
       }
@@ -236,13 +257,15 @@ export async function POST(
         if (file && file.size > 0) {
           const bytes = await file.arrayBuffer();
           const buffer = Buffer.from(bytes);
-          
+
           const timestamp = Date.now();
-          const filename = `${id}_${userId}_${timestamp}_${i}.${file.name.split('.').pop()}`;
+          const filename = `${id}_${userId}_${timestamp}_${i}.${file.name
+            .split(".")
+            .pop()}`;
           const filepath = join(uploadsDir, filename);
-          
+
           await writeFile(filepath, buffer);
-          
+
           await client.query(
             `INSERT INTO review_photos (review_id, photo_path)
              VALUES ($1, $2)`,
@@ -251,14 +274,14 @@ export async function POST(
         }
       }
 
-      await client.query('COMMIT');
+      await client.query("COMMIT");
 
       return NextResponse.json(
         { success: true, data: { reviewId } },
         { status: 201 }
       );
     } catch (error) {
-      await client.query('ROLLBACK');
+      await client.query("ROLLBACK");
       throw error;
     } finally {
       client.release();
@@ -271,4 +294,3 @@ export async function POST(
     );
   }
 }
-
