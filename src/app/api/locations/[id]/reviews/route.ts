@@ -1,8 +1,8 @@
 import { verifyToken } from "@/lib/auth";
 import pool from "@/lib/db";
 import { reviewSchema } from "@/lib/validations";
-import { existsSync } from "fs";
-import { mkdir, writeFile } from "fs/promises";
+import { ensureUploadDir, REVIEWS_UPLOAD_DIR } from "@/lib/fs";
+import { writeFile } from "fs/promises";
 import { NextRequest, NextResponse } from "next/server";
 import { join } from "path";
 
@@ -247,10 +247,7 @@ export async function POST(
         .map(([, file]) => file as File);
 
       // Garantir que o diretório existe
-      const uploadsDir = join(process.cwd(), "uploads", "reviews");
-      if (!existsSync(uploadsDir)) {
-        await mkdir(uploadsDir, { recursive: true });
-      }
+      ensureUploadDir();
 
       for (let i = 0; i < photoFiles.length; i++) {
         const file = photoFiles[i];
@@ -262,7 +259,7 @@ export async function POST(
           const filename = `${id}_${userId}_${timestamp}_${i}.${file.name
             .split(".")
             .pop()}`;
-          const filepath = join(uploadsDir, filename);
+          const filepath = join(REVIEWS_UPLOAD_DIR, filename);
 
           await writeFile(filepath, buffer);
 

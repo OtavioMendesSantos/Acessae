@@ -1,8 +1,8 @@
 import { verifyToken } from "@/lib/auth";
 import pool from "@/lib/db";
 import { reviewSchema } from "@/lib/validations";
-import { existsSync } from "fs";
-import { mkdir, unlink, writeFile } from "fs/promises";
+import { ensureUploadDir, REVIEWS_UPLOAD_DIR } from "@/lib/fs";
+import { unlink, writeFile } from "fs/promises";
 import { NextRequest, NextResponse } from "next/server";
 import { join } from "path";
 
@@ -132,12 +132,7 @@ export async function PUT(
           try {
             // photo.photo_path já vem como /uploads/reviews/filename
             const filename = photo.photo_path.replace("/uploads/reviews/", "");
-            const filepath = join(
-              process.cwd(),
-              "uploads",
-              "reviews",
-              filename
-            );
+            const filepath = join(REVIEWS_UPLOAD_DIR, filename);
             await unlink(filepath);
           } catch (error) {
             console.warn("Erro ao remover arquivo:", error);
@@ -156,10 +151,7 @@ export async function PUT(
         .map(([, file]) => file as File);
 
       // Garantir que o diretório existe
-      const uploadsDir = join(process.cwd(), "uploads", "reviews");
-      if (!existsSync(uploadsDir)) {
-        await mkdir(uploadsDir, { recursive: true });
-      }
+      ensureUploadDir();
 
       for (let i = 0; i < photoFiles.length; i++) {
         const file = photoFiles[i];
@@ -171,7 +163,7 @@ export async function PUT(
           const filename = `${id}_${userId}_${timestamp}_${i}.${file.name
             .split(".")
             .pop()}`;
-          const filepath = join(uploadsDir, filename);
+          const filepath = join(REVIEWS_UPLOAD_DIR, filename);
 
           await writeFile(filepath, buffer);
 
@@ -270,7 +262,7 @@ export async function DELETE(
       try {
         // photo.photo_path já vem como /uploads/reviews/filename
         const filename = photo.photo_path.replace("/uploads/reviews/", "");
-        const filepath = join(process.cwd(), "uploads", "reviews", filename);
+        const filepath = join(REVIEWS_UPLOAD_DIR, filename);
         await unlink(filepath);
       } catch (error) {
         console.warn("Erro ao remover arquivo:", error);
