@@ -11,15 +11,30 @@ export function cn(...inputs: ClassValue[]) {
  */
 export function getImageUrl(photoPath: string): string {
   if (!photoPath) return '';
+  
   // Se já começa com /api, retorna como está
   if (photoPath.startsWith('/api/')) return photoPath;
-  // Se começa com /uploads, converte para /api/uploads
-  if (photoPath.startsWith('/uploads/')) {
-    return `/api${photoPath}`;
+  
+  // Extrair apenas o nome do arquivo do caminho
+  let filename = photoPath;
+  
+  // Se começa com /uploads/reviews/, extrair apenas o nome do arquivo
+  if (photoPath.startsWith('/uploads/reviews/')) {
+    filename = photoPath.replace('/uploads/reviews/', '');
   }
-  // Se não começa com /, adiciona /api/uploads/reviews/
-  if (!photoPath.startsWith('/')) {
-    return `/api/uploads/reviews/${photoPath}`;
+  // Se começa com /uploads/, extrair o nome do arquivo
+  else if (photoPath.startsWith('/uploads/')) {
+    filename = photoPath.split('/').pop() || photoPath;
   }
-  return photoPath;
+  // Se não começa com /, já é o nome do arquivo
+  else if (!photoPath.startsWith('/')) {
+    filename = photoPath;
+  }
+  // Se começa com / mas não é /uploads, extrair o nome do arquivo
+  else {
+    filename = photoPath.split('/').pop() || photoPath;
+  }
+  
+  // Retornar a URL completa da API
+  return `/api/uploads/reviews/${filename}`;
 }
