@@ -66,8 +66,17 @@ function LoginForm() {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-50 dark:bg-gray-900">
-      <Card className="w-full max-w-md">
+    <div 
+      className="min-h-screen flex items-center justify-center bg-gray-50 dark:bg-gray-900 relative"
+      style={{
+        backgroundImage: 'url(/assets/BACKGROUND.png)',
+        backgroundSize: 'cover',
+        backgroundPosition: 'center',
+        backgroundRepeat: 'no-repeat',
+      }}
+    >
+      <div className="absolute inset-0 bg-white/80 dark:bg-gray-900/80" />
+      <Card className="w-full max-w-md relative z-10">
         <CardHeader className="space-y-1">
           <CardTitle className="text-2xl text-center">Entrar</CardTitle>
           <CardDescription className="text-center">
@@ -146,8 +155,17 @@ function LoginForm() {
 export default function LoginPage() {
   return (
     <Suspense fallback={
-      <div className="min-h-screen flex items-center justify-center bg-gray-50 dark:bg-gray-900">
-        <Card className="w-full max-w-md">
+      <div 
+        className="min-h-screen flex items-center justify-center bg-gray-50 dark:bg-gray-900 relative"
+        style={{
+          backgroundImage: 'url(/assets/BACKGROUND.png)',
+          backgroundSize: 'cover',
+          backgroundPosition: 'center',
+          backgroundRepeat: 'no-repeat',
+        }}
+      >
+        <div className="absolute inset-0 bg-white/80 dark:bg-gray-900/80" />
+        <Card className="w-full max-w-md relative z-10">
           <CardContent className="p-6">
             <div className="text-center">Carregando...</div>
           </CardContent>
