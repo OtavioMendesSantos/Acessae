@@ -178,8 +178,8 @@ export default function LocationMap({ locations, onLocationClick, onMapDoubleCli
         },
         (error) => {
           console.warn('Erro ao obter localização:', error);
-          // Se não conseguir obter a localização, usar São Paulo como padrão
-          setUserPosition([-23.5505, -46.6333]);
+          // Se não conseguir obter a localização, usar Brasília como padrão
+          setUserPosition([-15.7942, -47.8817]);
           setIsLoading(false);
         },
         {
@@ -189,8 +189,8 @@ export default function LocationMap({ locations, onLocationClick, onMapDoubleCli
         }
       );
     } else {
-      // Fallback para São Paulo se geolocalização não estiver disponível
-      setUserPosition([-23.5505, -46.6333]);
+      // Fallback para Brasília se geolocalização não estiver disponível
+      setUserPosition([-15.7942, -47.8817]);
       setIsLoading(false);
     }
   }, []);
@@ -250,7 +250,7 @@ export default function LocationMap({ locations, onLocationClick, onMapDoubleCli
       )}
 
       <MapContainer
-        center={userPosition || [-23.5505, -46.6333]}
+        center={userPosition || [-15.7942, -47.8817]}
         zoom={13}
         className="h-full w-full rounded-lg shadow-sm"
         style={{ height: '500px', width: '100%' }}

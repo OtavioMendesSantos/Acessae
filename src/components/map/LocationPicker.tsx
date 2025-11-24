@@ -124,9 +124,9 @@ export default function LocationPicker({
   onLocationSelect, 
   className = '' 
 }: LocationPickerProps) {
-  // Valores padrão para São Paulo
-  const defaultLat = -23.5505;
-  const defaultLng = -46.6333;
+  // Valores padrão para Brasília
+  const defaultLat = -15.7942;
+  const defaultLng = -47.8817;
   
   const [selectedPosition, setSelectedPosition] = useState<[number, number]>([
     initialLat ?? defaultLat, 

@@ -5,6 +5,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Button } from '@/components/ui/button';
 import { Star, Calendar, Edit, Trash2, User } from 'lucide-react';
 import { getImageUrl } from '@/lib/utils';
+import { ImageModal } from './ImageModal';
 
 interface Review {
   id: number;
@@ -27,6 +28,9 @@ interface ReviewsListProps {
 
 export function ReviewsList({ reviews, onEditReview, onDeleteReview, currentUserId }: ReviewsListProps) {
   const [localReviews, setLocalReviews] = useState<Review[]>(reviews);
+  const [selectedReviewImages, setSelectedReviewImages] = useState<Array<{ id: number; photo_path: string }> | null>(null);
+  const [selectedImageIndex, setSelectedImageIndex] = useState(0);
+  const [isModalOpen, setIsModalOpen] = useState(false);
 
   // Atualizar reviews quando a prop mudar
   useEffect(() => {
@@ -179,14 +183,19 @@ export function ReviewsList({ reviews, onEditReview, onDeleteReview, currentUser
               {review.photos.length > 0 && (
                 <div className="mt-3">
                   <div className="flex space-x-2 overflow-x-auto">
-                    {review.photos.map((photo) => (
+                    {review.photos.map((photo, photoIndex) => (
                       <img
                         key={photo.id}
                         src={getImageUrl(photo.photo_path)}
                         alt="Foto da avaliação"
                         width={80}
                         height={80}
-                        className="object-cover rounded border"
+                        className="object-cover rounded border cursor-pointer hover:opacity-80 transition-opacity"
+                        onClick={() => {
+                          setSelectedReviewImages(review.photos);
+                          setSelectedImageIndex(photoIndex);
+                          setIsModalOpen(true);
+                        }}
                       />
                     ))}
                   </div>
@@ -196,6 +205,16 @@ export function ReviewsList({ reviews, onEditReview, onDeleteReview, currentUser
           ))}
         </div>
       </CardContent>
+      
+      {/* Modal de Imagens */}
+      {selectedReviewImages && (
+        <ImageModal
+          images={selectedReviewImages}
+          initialIndex={selectedImageIndex}
+          open={isModalOpen}
+          onOpenChange={setIsModalOpen}
+        />
+      )}
     </Card>
   );
 }
