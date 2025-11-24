@@ -2,8 +2,9 @@ import { NextRequest, NextResponse } from "next/server";
 import pool from "@/lib/db";
 import { verifyToken } from "@/lib/auth";
 import { reviewSchema } from "@/lib/validations";
-import { writeFile, unlink } from "fs/promises";
+import { writeFile, unlink, mkdir } from "fs/promises";
 import { join } from "path";
+import { existsSync } from "fs";
 
 export async function PUT(
   request: NextRequest,
@@ -123,7 +124,9 @@ export async function PUT(
         if (!keepPhotos.includes(photo.id)) {
           // Remover arquivo físico
           try {
-            const filepath = join(process.cwd(), 'public', photo.photo_path);
+            // photo.photo_path já vem como /uploads/reviews/filename
+            const filename = photo.photo_path.replace('/uploads/reviews/', '');
+            const filepath = join(process.cwd(), 'uploads', 'reviews', filename);
             await unlink(filepath);
           } catch (error) {
             console.warn('Erro ao remover arquivo:', error);
@@ -142,6 +145,12 @@ export async function PUT(
         .filter(([key]) => key.startsWith('photo'))
         .map(([, file]) => file as File);
 
+      // Garantir que o diretório existe
+      const uploadsDir = join(process.cwd(), 'uploads', 'reviews');
+      if (!existsSync(uploadsDir)) {
+        await mkdir(uploadsDir, { recursive: true });
+      }
+
       for (let i = 0; i < photoFiles.length; i++) {
         const file = photoFiles[i];
         if (file && file.size > 0) {
@@ -150,7 +159,7 @@ export async function PUT(
           
           const timestamp = Date.now();
           const filename = `${id}_${userId}_${timestamp}_${i}.${file.name.split('.').pop()}`;
-          const filepath = join(process.cwd(), 'public', 'uploads', 'reviews', filename);
+          const filepath = join(uploadsDir, filename);
           
           await writeFile(filepath, buffer);
           
@@ -244,7 +253,9 @@ export async function DELETE(
     // Remover arquivos físicos
     for (const photo of photosResult.rows) {
       try {
-        const filepath = join(process.cwd(), 'public', photo.photo_path);
+        // photo.photo_path já vem como /uploads/reviews/filename
+        const filename = photo.photo_path.replace('/uploads/reviews/', '');
+        const filepath = join(process.cwd(), 'uploads', 'reviews', filename);
         await unlink(filepath);
       } catch (error) {
         console.warn('Erro ao remover arquivo:', error);

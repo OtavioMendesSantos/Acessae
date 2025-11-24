@@ -5,6 +5,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Button } from '@/components/ui/button';
 import { Star, Calendar, Edit, Trash2, User } from 'lucide-react';
 import Image from 'next/image';
+import { getImageUrl } from '@/lib/utils';
 
 interface Review {
   id: number;
@@ -182,7 +183,7 @@ export function ReviewsList({ reviews, onEditReview, onDeleteReview, currentUser
                     {review.photos.map((photo) => (
                       <Image
                         key={photo.id}
-                        src={photo.photo_path}
+                        src={getImageUrl(photo.photo_path)}
                         alt="Foto da avaliação"
                         width={80}
                         height={80}

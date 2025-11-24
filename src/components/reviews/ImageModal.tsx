@@ -4,6 +4,7 @@ import { useState } from 'react';
 import { X, ChevronLeft, ChevronRight } from 'lucide-react';
 import { Dialog, DialogContent, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
+import { getImageUrl } from '@/lib/utils';
 
 interface ImageModalProps {
   images: Array<{ id: number; photo_path: string }>;
@@ -46,7 +47,7 @@ export function ImageModal({ images, triggerImage, className }: ImageModalProps)
     <Dialog>
       <DialogTrigger asChild>
         <img
-          src={triggerImage.photo_path}
+          src={getImageUrl(triggerImage.photo_path)}
           alt={`Foto da avaliação`}
           className={`w-full h-24 object-cover rounded-lg border cursor-pointer hover:opacity-90 transition-opacity ${className}`}
         />
@@ -99,7 +100,7 @@ export function ImageModal({ images, triggerImage, className }: ImageModalProps)
           {/* Imagem Principal */}
           <div className="flex items-center justify-center w-full h-full p-8">
             <img
-              src={currentImage.photo_path}
+              src={getImageUrl(currentImage.photo_path)}
               alt={`Foto ${currentIndex + 1} de ${images.length}`}
               className="max-w-full max-h-full object-contain rounded-lg"
             />

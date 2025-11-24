@@ -17,6 +17,7 @@ import {
 } from '@/components/ui/dialog';
 import { ReviewForm } from '@/components/reviews/ReviewForm';
 import { type ReviewFormData, type CriteriaData } from '@/lib/validations';
+import { getImageUrl } from '@/lib/utils';
 
 interface UserProfile {
   id: number;
@@ -660,7 +661,7 @@ export default function ProfilePage() {
                               {review.photos.map((photo) => (
                                 <img
                                   key={photo.id}
-                                  src={photo.photo_path}
+                                  src={getImageUrl(photo.photo_path)}
                                   alt="Foto da avaliação"
                                   className="h-20 w-20 object-cover rounded border"
                                 />

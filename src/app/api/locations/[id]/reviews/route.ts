@@ -2,8 +2,9 @@ import { NextRequest, NextResponse } from "next/server";
 import pool from "@/lib/db";
 import { verifyToken } from "@/lib/auth";
 import { reviewSchema } from "@/lib/validations";
-import { writeFile } from "fs/promises";
+import { writeFile, mkdir } from "fs/promises";
 import { join } from "path";
+import { existsSync } from "fs";
 
 export async function GET(
   request: NextRequest,
@@ -224,6 +225,12 @@ export async function POST(
         .filter(([key]) => key.startsWith('photo'))
         .map(([, file]) => file as File);
 
+      // Garantir que o diretório existe
+      const uploadsDir = join(process.cwd(), 'uploads', 'reviews');
+      if (!existsSync(uploadsDir)) {
+        await mkdir(uploadsDir, { recursive: true });
+      }
+
       for (let i = 0; i < photoFiles.length; i++) {
         const file = photoFiles[i];
         if (file && file.size > 0) {
@@ -232,7 +239,7 @@ export async function POST(
           
           const timestamp = Date.now();
           const filename = `${id}_${userId}_${timestamp}_${i}.${file.name.split('.').pop()}`;
-          const filepath = join(process.cwd(), 'public', 'uploads', 'reviews', filename);
+          const filepath = join(uploadsDir, filename);
           
           await writeFile(filepath, buffer);
           
