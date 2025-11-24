@@ -4,7 +4,6 @@ import { useState, useEffect } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Star, Calendar, Edit, Trash2, User } from 'lucide-react';
-import Image from 'next/image';
 import { getImageUrl } from '@/lib/utils';
 
 interface Review {
@@ -121,7 +120,7 @@ export function ReviewsList({ reviews, onEditReview, onDeleteReview, currentUser
                   </span>
                 </div>
                 <div className="flex space-x-2">
-                  {currentUserId === review.user_id && onEditReview && (
+                  {currentUserId !== undefined && Number(currentUserId) === Number(review.user_id) && onEditReview && (
                     <Button
                       size="sm"
                       variant="outline"
@@ -130,7 +129,7 @@ export function ReviewsList({ reviews, onEditReview, onDeleteReview, currentUser
                       <Edit className="h-4 w-4" />
                     </Button>
                   )}
-                  {currentUserId === review.user_id && (
+                  {currentUserId !== undefined && Number(currentUserId) === Number(review.user_id) && (
                     <Button
                       size="sm"
                       variant="outline"
@@ -181,7 +180,7 @@ export function ReviewsList({ reviews, onEditReview, onDeleteReview, currentUser
                 <div className="mt-3">
                   <div className="flex space-x-2 overflow-x-auto">
                     {review.photos.map((photo) => (
-                      <Image
+                      <img
                         key={photo.id}
                         src={getImageUrl(photo.photo_path)}
                         alt="Foto da avaliação"
