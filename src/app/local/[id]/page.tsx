@@ -14,6 +14,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog';
+import { getImageUrl } from '@/lib/utils';
 import { type CriteriaData, type ReviewFormData } from '@/lib/validations';
 import {
   ArrowLeft,
@@ -76,6 +77,7 @@ export default function LocalDetailsPage() {
   const [showReviewForm, setShowReviewForm] = useState(false);
   const [editingReviewId, setEditingReviewId] = useState<number | null>(null);
   const [currentUserId, setCurrentUserId] = useState<number | null>(null);
+  const [isCheckingAuth, setIsCheckingAuth] = useState(true);
   const [showSuccessModal, setShowSuccessModal] = useState(false);
   const [successMessage, setSuccessMessage] = useState('');
 
@@ -125,17 +127,60 @@ export default function LocalDetailsPage() {
   }, [params.id]);
 
   useEffect(() => {
-    // Verificar se usuário está logado
-    const token = localStorage.getItem('token');
-    if (token) {
-      try {
-        // Decodificar token para obter user ID (implementação simples)
-        const payload = JSON.parse(atob(token.split('.')[1]));
-        setCurrentUserId(payload.userId);
-      } catch (err) {
-        console.error('Erro ao decodificar token:', err);
+    // Verificar se usuário está logado e obter ID
+    const fetchCurrentUser = async () => {
+      const token = localStorage.getItem('token');
+
+      if (!token) {
+        setCurrentUserId(null);
+        setIsCheckingAuth(false);
+        return;
       }
-    }
+
+      // Primeiro, tentar decodificar o token diretamente (mais rápido e confiável)
+      try {
+        const parts = token.split('.');
+        if (parts.length === 3) {
+          const payload = JSON.parse(atob(parts[1]));
+
+          if (payload.userId) {
+            const userId = Number(payload.userId);
+            setCurrentUserId(userId);
+            setIsCheckingAuth(false);
+            return; // Se conseguimos extrair do token, não precisa chamar a API
+          }
+        }
+      } catch {
+        // Se falhar, tentar a API
+      }
+
+      // Se não conseguiu decodificar, tentar a API
+      try {
+        const response = await fetch('/api/auth/me', {
+          headers: {
+            'Authorization': `Bearer ${token}`,
+          },
+        });
+
+        if (response.ok) {
+          const userData = await response.json();
+
+          if (userData.id) {
+            setCurrentUserId(Number(userData.id));
+          } else {
+            setCurrentUserId(null);
+          }
+        } else {
+          setCurrentUserId(null);
+        }
+      } catch {
+        setCurrentUserId(null);
+      } finally {
+        setIsCheckingAuth(false);
+      }
+    };
+
+    fetchCurrentUser();
   }, []);
 
   const handleEdit = () => {
@@ -236,11 +281,16 @@ export default function LocalDetailsPage() {
         setShowSuccessModal(true);
       } else {
         // Se o erro for sobre já ter uma avaliação, abrir em modo de edição
-        if (result.error && result.error.includes('já avaliou este local')) {
-          if (reviewsData) {
-            const userReview = reviewsData.reviews.find(review => review.user_id === currentUserId);
+        if (result.error && (result.error.includes('já avaliou este local') || result.error.includes('já existe uma avaliação'))) {
+          // Recarregar avaliações para pegar a avaliação do usuário
+          const reviewsResponse = await fetch(`/api/locations/${params.id}/reviews`);
+          const reviewsData = await reviewsResponse.json();
+          if (reviewsData.success && currentUserId) {
+            const userReview = reviewsData.data.reviews.find((review: Review) => Number(review.user_id) === Number(currentUserId));
             if (userReview) {
+              setReviewsData(reviewsData.data);
               setEditingReviewId(userReview.id);
+              setShowReviewForm(true);
               alert('Você já avaliou este local. O formulário foi aberto em modo de edição.');
               return;
             }
@@ -272,7 +322,7 @@ export default function LocalDetailsPage() {
     return {
       description: review.description,
       criteria: review.criteria as CriteriaData[],
-      photos: review.photos.map(photo => photo.photo_path)
+      photos: review.photos.map(photo => getImageUrl(photo.photo_path))
     };
   };
 
@@ -281,15 +331,18 @@ export default function LocalDetailsPage() {
     setEditingReviewId(null);
   };
 
-  const handleStartReview = () => {
-    if (!currentUserId) {
+  const handleStartReview = async () => {
+    const token = localStorage.getItem('token');
+    if (!token || !currentUserId) {
       alert('Você precisa estar logado para avaliar');
       return;
     }
 
     // Verificar se o usuário já tem uma avaliação para este local
     if (reviewsData) {
-      const userReview = reviewsData.reviews.find(review => review.user_id === currentUserId);
+      const userReview = reviewsData.reviews.find(
+        review => Number(review.user_id) === Number(currentUserId)
+      );
       if (userReview) {
         // Se já tem avaliação, abrir em modo de edição
         setEditingReviewId(userReview.id);
@@ -478,7 +531,7 @@ export default function LocalDetailsPage() {
         )}
 
         {/* Botão para Avaliar */}
-        {currentUserId && !showReviewForm && (
+        {!isCheckingAuth && currentUserId && !showReviewForm && (
           <div className="flex justify-center">
             <Button onClick={handleStartReview} size="lg">
               <Star className="h-5 w-5 mr-2" />

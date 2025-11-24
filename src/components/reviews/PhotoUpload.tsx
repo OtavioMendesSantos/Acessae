@@ -1,10 +1,10 @@
 'use client';
 
-import { useState, useRef } from 'react';
-import { X, Upload, Image as ImageIcon } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { cn } from '@/lib/utils';
+import { Image as ImageIcon, Upload, X } from 'lucide-react';
+import { useRef, useState } from 'react';
 
 interface PhotoUploadProps {
   photos: string[];
@@ -13,11 +13,11 @@ interface PhotoUploadProps {
   className?: string;
 }
 
-export function PhotoUpload({ 
-  photos, 
-  onPhotosChange, 
+export function PhotoUpload({
+  photos,
+  onPhotosChange,
   maxPhotos = 5,
-  className 
+  className
 }: PhotoUploadProps) {
   const [dragActive, setDragActive] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -89,7 +89,7 @@ export function PhotoUpload({
     e.preventDefault();
     e.stopPropagation();
     setDragActive(false);
-    
+
     if (e.dataTransfer.files && e.dataTransfer.files[0]) {
       handleFiles(e.dataTransfer.files);
     }
@@ -107,57 +107,6 @@ export function PhotoUpload({
   return (
     <div className={className}>
       <div className="space-y-4">
-        {/* Upload Area */}
-        <div
-          className={cn(
-            "border-2 border-dashed rounded-lg p-6 text-center transition-colors",
-            dragActive 
-              ? "border-blue-400 bg-blue-50" 
-              : "border-gray-300 hover:border-gray-400",
-            photos.length >= maxPhotos && "opacity-50 cursor-not-allowed"
-          )}
-          onDragEnter={handleDrag}
-          onDragLeave={handleDrag}
-          onDragOver={handleDrag}
-          onDrop={handleDrop}
-        >
-          <div className="space-y-2">
-            <ImageIcon className="h-8 w-8 mx-auto text-gray-400" />
-            <div>
-              <p className="text-sm text-gray-600">
-                {photos.length >= maxPhotos 
-                  ? `Máximo de ${maxPhotos} fotos atingido`
-                  : `Arraste fotos aqui ou clique para selecionar`
-                }
-              </p>
-              <p className="text-xs text-gray-500">
-                JPG, PNG, WebP • Máx. 5MB cada • {photos.length}/{maxPhotos} fotos
-              </p>
-            </div>
-            
-            <Button
-              type="button"
-              onClick={openFileDialog}
-              disabled={photos.length >= maxPhotos}
-              variant="outline"
-              size="sm"
-            >
-              <Upload className="h-4 w-4 mr-2" />
-              Selecionar Fotos
-            </Button>
-          </div>
-        </div>
-
-        {/* Hidden file input */}
-        <Input
-          ref={fileInputRef}
-          type="file"
-          accept="image/jpeg,image/jpg,image/png,image/webp"
-          multiple
-          onChange={(e) => handleFiles(e.target.files)}
-          className="hidden"
-        />
-
         {/* Photo Preview Grid */}
         {photos.length > 0 && (
           <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-3">
@@ -181,6 +130,57 @@ export function PhotoUpload({
             ))}
           </div>
         )}
+
+        {/* Upload Area - Sempre visível se não atingiu o máximo */}
+        {photos.length < maxPhotos && (
+          <div
+            className={cn(
+              "border-2 border-dashed rounded-lg p-6 text-center transition-colors",
+              dragActive
+                ? "border-blue-400 bg-blue-50"
+                : "border-gray-300 hover:border-gray-400"
+            )}
+            onDragEnter={handleDrag}
+            onDragLeave={handleDrag}
+            onDragOver={handleDrag}
+            onDrop={handleDrop}
+          >
+            <div className="space-y-2">
+              <ImageIcon className="h-8 w-8 mx-auto text-gray-400" />
+              <div>
+                <p className="text-sm text-gray-600">
+                  {photos.length > 0
+                    ? `Adicione mais fotos (${photos.length}/${maxPhotos})`
+                    : `Arraste fotos aqui ou clique para selecionar`
+                  }
+                </p>
+                <p className="text-xs text-gray-500">
+                  JPG, PNG, WebP • Máx. 5MB cada • {photos.length}/{maxPhotos} fotos
+                </p>
+              </div>
+
+              <Button
+                type="button"
+                onClick={openFileDialog}
+                variant="outline"
+                size="sm"
+              >
+                <Upload className="h-4 w-4 mr-2" />
+                {photos.length > 0 ? 'Adicionar Mais Fotos' : 'Selecionar Fotos'}
+              </Button>
+            </div>
+          </div>
+        )}
+
+        {/* Hidden file input */}
+        <Input
+          ref={fileInputRef}
+          type="file"
+          accept="image/jpeg,image/jpg,image/png,image/webp"
+          multiple
+          onChange={(e) => handleFiles(e.target.files)}
+          className="hidden"
+        />
       </div>
     </div>
   );
